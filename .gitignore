@@ -1,0 +1,38 @@
+# PlatformIO
+.pio/
+firmware/.pio/
+
+# GENERATED web UI for LittleFS: made by scripts/build-web.mjs. Never edit by hand.
+firmware/data/
+
+# Web (Node / Vite)
+node_modules/
+web/dist/
+web/.env.local
+web/.env.*.local
+*.tsbuildinfo
+npm-debug.log*
+
+# Build output
+*.bin
+*.elf
+*.hex
+*.map
+
+# VS Code (keep shared settings only)
+.vscode/*
+!.vscode/extensions.json
+.history/
+
+# JetBrains / CLion
+.idea/
+cmake-build-*/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets: never commit WiFi passwords or keys
+firmware/include/secrets.h
+.env

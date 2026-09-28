@@ -1,0 +1,35 @@
+# Who reviews what. Replace the placeholder usernames with real GitHub usernames.
+# The LAST matching line wins, so the lead is listed on every line to review every PR.
+# Lines with ONLY @lead-owner mean: changes need the lead's approval.
+
+*                                   @lead-owner
+
+# Firmware modules
+/firmware/src/main/                 @lead-owner
+/firmware/include/config.h          @lead-owner
+/firmware/include/state_machine.h   @lead-owner
+/firmware/include/shared_state.h    @lead-owner
+/firmware/include/version.h         @lead-owner
+/firmware/platformio.ini            @lead-owner
+/firmware/src/locomotion/           @locomotion-owner @lead-owner
+/firmware/include/locomotion.h      @locomotion-owner @lead-owner
+/firmware/src/adhesion/             @adhesion-owner @lead-owner
+/firmware/include/adhesion.h        @adhesion-owner @lead-owner
+/firmware/src/sensors/              @sensors-owner @lead-owner
+/firmware/include/sensors.h         @sensors-owner @lead-owner
+/firmware/src/comms/                @control-owner @lead-owner
+/firmware/include/comms.h           @control-owner @lead-owner
+
+# Web UI
+/web/                               @control-owner @lead-owner
+/scripts/                           @control-owner @lead-owner
+
+# Protocol: firmware and web must agree. Lead approval required.
+/docs/protocol.md                   @lead-owner
+/firmware/include/protocol.h        @lead-owner
+/firmware/src/comms/protocol.cpp    @lead-owner
+/web/src/protocol.ts                @lead-owner
+
+# Safety and CI
+/SAFETY.md                          @lead-owner
+/.github/                           @lead-owner
