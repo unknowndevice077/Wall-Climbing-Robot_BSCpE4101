@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "author": "BSCpE 4101",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "imu",
+      "top": -140,
+      "left": 30,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "bump",
+      "top": 220,
+      "left": -160,
+      "attrs": {
+        "color": "red",
+        "label": "front bumper"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "vbat",
+      "top": 220,
+      "left": -20,
+      "attrs": {
+        "label": "battery (divider)"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "escF",
+      "top": -150,
+      "left": 260,
+      "attrs": {
+        "label": "ESC front"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "escR",
+      "top": -80,
+      "left": 260,
+      "attrs": {
+        "label": "ESC rear"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "pitchF",
+      "top": -10,
+      "left": 260,
+      "attrs": {
+        "label": "pitch servo F"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "rollF",
+      "top": 60,
+      "left": 260,
+      "attrs": {
+        "label": "roll servo F"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "pitchR",
+      "top": 130,
+      "left": 260,
+      "attrs": {
+        "label": "pitch servo R"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "rollR",
+      "top": 200,
+      "left": 260,
+      "attrs": {
+        "label": "roll servo R"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "imu:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "imu:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "imu:SDA",
+      "esp:21",
+      "blue",
+      []
+    ],
+    [
+      "imu:SCL",
+      "esp:22",
+      "purple",
+      []
+    ],
+    [
+      "bump:1.l",
+      "esp:27",
+      "green",
+      []
+    ],
+    [
+      "bump:2.l",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "vbat:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "vbat:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "vbat:SIG",
+      "esp:34",
+      "orange",
+      []
+    ],
+    [
+      "escF:PWM",
+      "esp:25",
+      "orange",
+      []
+    ],
+    [
+      "escF:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "escF:GND",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "escR:PWM",
+      "esp:26",
+      "orange",
+      []
+    ],
+    [
+      "escR:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "escR:GND",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "pitchF:PWM",
+      "esp:18",
+      "orange",
+      []
+    ],
+    [
+      "pitchF:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "pitchF:GND",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "rollF:PWM",
+      "esp:19",
+      "orange",
+      []
+    ],
+    [
+      "rollF:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "rollF:GND",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "pitchR:PWM",
+      "esp:32",
+      "orange",
+      []
+    ],
+    [
+      "pitchR:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "pitchR:GND",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "rollR:PWM",
+      "esp:33",
+      "orange",
+      []
+    ],
+    [
+      "rollR:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "rollR:GND",
+      "esp:GND.2",
+      "black",
+      []
+    ]
+  ],
+  "dependencies": {}
+}
