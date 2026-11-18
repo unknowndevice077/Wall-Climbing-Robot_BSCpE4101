@@ -28,6 +28,7 @@ const float MASS = 0.95;        // kg, weigh the real robot
 const float G = 9.81;
 const float TMAX = 6.6;         // N per prop at 11.1 V (measure it, see docs/BUILD.md)
 const float PHI_MIN = -40, PHI_MAX = 140;   // hoop angle range, deg. 90 = prop pushes forward
+const float PHI_MIN_FRONT = -4;             // front hoop hits the battery below this (design/blender clearance check)
 // per-servo trim: servo degrees where the hoop is at PHI_MIN. flip if the servo is mounted mirrored
 float trimF = 0, trimR = 0;
 bool flipF = false, flipR = true;
@@ -62,8 +63,8 @@ void imuRead(float dt) {
 }
 
 // ---------- outputs ----------
-void writeHoop(Servo &s, float phi, float trim, bool flip) {
-  phi = constrain(phi, PHI_MIN, PHI_MAX);
+void writeHoop(Servo &s, float phi, float phiMin, float trim, bool flip) {
+  phi = constrain(phi, phiMin, PHI_MAX);
   float deg = phi - PHI_MIN + trim;
   if (flip) deg = 180 - deg;
   s.write((int)constrain(deg, 0, 180));
@@ -76,13 +77,13 @@ void writeEsc(Servo &e, float thrustN) {
 }
 
 // wanted world force (Fx toward wall, Fz up) -> hoop angle + thrust
-void setProp(float fx, float fz, Servo &hoop, Servo &esc, float trim, bool flip) {
+void setProp(float fx, float fz, Servo &hoop, Servo &esc, float phiMin, float trim, bool flip) {
   float p = pitchDeg * PI / 180;
   float bx = fx * cos(p) + fz * sin(p);
   float bz = -fx * sin(p) + fz * cos(p);
   float phi = atan2(bx, bz) * 180 / PI;
   float mag = sqrt(bx * bx + bz * bz);
-  writeHoop(hoop, phi, trim, flip);
+  writeHoop(hoop, phi, phiMin, trim, flip);
   writeEsc(esc, min(mag, TMAX));
 }
 
@@ -95,7 +96,7 @@ void control() {
 
   if (mode == DRIVE) {
     phase = "drive";
-    fFx = fRx = 1.6 * stick;                   // negative = reverse (hoop tips back to -40 deg)
+    fFx = fRx = 1.6 * stick;                   // negative = reverse: only the rear hoop can tip back (-40 deg)
     fFz = fRz = stick < 0 ? 1.0 : 0;
   } else if (mode == CLIMB) {
     if (pitchDeg < 15 && !bumper) {            // still rolling up to the wall
@@ -115,8 +116,8 @@ void control() {
     }
   } else phase = "idle";
 
-  setProp(fFx, fFz, pitchF, escF, trimF, flipF);
-  setProp(fRx, fRz, pitchR, escR, trimR, flipR);
+  setProp(fFx, fFz, pitchF, escF, PHI_MIN_FRONT, trimF, flipF);
+  setProp(fRx, fRz, pitchR, escR, PHI_MIN, trimR, flipR);
   // steering: tilt the motor arms opposite ways -> yaw
   rollF.write(90 + (int)(25 * steer));
   rollR.write(90 - (int)(25 * steer));

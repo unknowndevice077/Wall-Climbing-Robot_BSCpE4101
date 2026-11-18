@@ -2,21 +2,25 @@
 
 Physics sim of the thrust-vectoring climber (design: [docs/BUILD.md](../docs/BUILD.md)) in [MuJoCo](https://mujoco.readthedocs.io).
 The wheels roll freely. Two props in tilting hoops press the robot to the wall and push it up.
+Meshes and **masses come from the CAD** (`design/mass_properties.json`), so the sim always weighs what the design weighs.
 
 ```bash
 pip install mujoco
-python sim/climb.py                  # live 3D viewer (drag to orbit)
-python sim/climb.py --video          # ideal run -> sim/climb.mp4 (needs ffmpeg)
-python sim/climb.py --video --real   # real-world limits -> sim/climb_real.mp4
+python sim/climb.py                          # live 3D viewer (drag to orbit)
+python sim/climb.py --video                  # ideal run -> sim/climb.mp4 (needs ffmpeg)
+python sim/climb.py --video --real           # real-world limits -> sim/climb_real.mp4
+python sim/climb.py --check --real           # pass/fail only, no video
+python sim/climb.py --real --thrust-gf 780   # use YOUR measured thrust per motor (grams on the scale)
+python sim/climb.py --min-thrust             # smallest thrust per motor that still climbs (real-world)
 ```
 
 | File | What |
 |---|---|
-| `wall_climber.xml` | Robot + floor + 2.5 m wall: masses, wheel joints, hoop servos, prop thrust (max 7.4 N each) |
-| `climb.py` | Controller: drive → tip onto the wall → climb → hold at 1.75 m |
-| `meshes/*.stl` | Body parts, made by `design/blender/build_robot.py` (don't edit by hand) |
+| `wall_climber.xml` | Robot + floor + 2.5 m wall: joints, hoop servos, prop thrust |
+| `climb.py` | Loads the CAD masses, runs the controller: drive → tip onto the wall → climb → hold at 1.75 m |
+| `meshes/*.stl` | Made by `design/blender/build_robot.py` (don't edit by hand) |
 | `climb.mp4`, `climb_real.mp4` | Recorded runs |
-| `wokwi/` | ESP32 prototype sketch + [Wokwi](https://wokwi.com) circuit. **Reference only**, not the team firmware (see below) |
+| `wokwi/` | ESP32 prototype sketch + [Wokwi](https://wokwi.com) circuit. **Reference only**, not the team firmware |
 
 ## How the controller works
 
@@ -33,13 +37,25 @@ The top prop pushes harder into the wall because gravity tries to peel the top w
 
 ## `--real` mode
 
-10% heavier, battery sag (7.4 → 6.6 N), μ 0.6 wheels, MG90S speed limit, servo range −40…140°, 80 ms motor lag,
-IMU bias + noise, and a 1.5 N pull off the wall at 6 s. The controller doesn't know about any of it.
-Result: it climbs and holds, but the top prop runs at **100 %** of its thrust. See BUILD.md §7.
+The controller doesn't know about any of these:
+- 10% heavier than the CAD
+- battery sag (−11% thrust)
+- μ 0.6 grip
+- MG90S speed limit and servo range (front hoop −4…140°, rear −40…140°)
+- 80 ms motor lag
+- IMU bias and noise
+- a 1.5 N pull off the wall at 6 s
+
+With the CAD weight (1,043 g) it climbs and holds. `--min-thrust` gives **721 gf per motor** as the minimum,
+so the bench thrust test must show **≥ 750 g per motor**.
 
 ## Wokwi prototype (`wokwi/`)
 
-A single-file Arduino sketch with the same control logic, serial-controlled for Wokwi: new ESP32 project →
-paste `sketch.ino`, `diagram.json`, `libraries.txt` → play → type `h` in the serial monitor. Click the MPU6050 to tilt it.
-It uses Arduino core 3.x + ESP32Servo, so it does **not** follow AGENTS.md (core 2.0.17, `ledcSetup`, no new libraries).
-Porting it into `firmware/` needs the lead's decision on the locomotion/adhesion interfaces first.
+A single-file Arduino sketch with the same control logic, serial-controlled for Wokwi:
+1. Make a new ESP32 project.
+2. Paste in `sketch.ino`, `diagram.json` and `libraries.txt`.
+3. Press play and type `h` in the serial monitor.
+4. Click the MPU6050 to tilt it.
+
+It compiles for the ESP32 (Arduino core 3.x + ESP32Servo), so it does **not** follow AGENTS.md (core 2.0.17, `ledcSetup`, no new libraries).
+Porting it into `firmware/` needs the lead's decision on the locomotion/adhesion interfaces first (docs/SETUP.md §7).

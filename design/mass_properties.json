@@ -1,0 +1,195 @@
+{
+ "chassis": {
+  "mass_kg": 0.487,
+  "com_m": [
+   -0.0014637790154665709,
+   -0.0046661910600960255,
+   -0.012058786116540432
+  ]
+ },
+ "hoop": {
+  "mass_kg": 0.1417,
+  "com_m": [
+   0.009825500659644604,
+   0.0033478671684861183,
+   -0.007330264430493116
+  ]
+ },
+ "wheel": {
+  "mass_kg": 0.06709999999999999
+ },
+ "total_g": 1038.8,
+ "cg_m": [
+  0.0024,
+  -0.0013,
+  0.0011
+ ],
+ "cg_height_m": 0.1091,
+ "hold_thrust_factor": 1.199,
+ "printed": [
+  {
+   "part": "wheel",
+   "qty": 4,
+   "walls": 2,
+   "infill": 0.2,
+   "grams_each": 52.3,
+   "grams_total": 209.2,
+   "solid_cm3": 51.33,
+   "size_mm": [
+    212,
+    212,
+    14
+   ],
+   "at_infill": {
+    "15%": 51.6,
+    "25%": 53.0,
+    "40%": 55.1,
+    "100%": 63.6
+   },
+   "print_min_each": 183,
+   "why": "4-6 mm thick spokes/rim are almost all wall anyway; 20 % gyroid in the hub.",
+   "watertight": true
+  },
+  {
+   "part": "bracket",
+   "qty": 4,
+   "walls": 3,
+   "infill": 0.4,
+   "grams_each": 16.1,
+   "grams_total": 64.6,
+   "solid_cm3": 15.11,
+   "size_mm": [
+    58,
+    62,
+    13
+   ],
+   "at_infill": {
+    "15%": 15.1,
+    "25%": 15.5,
+    "40%": 16.1,
+    "100%": 18.7
+   },
+   "print_min_each": 56,
+   "why": "Carries the hoop thrust and the wheel axle; 3 walls = 1.2 mm around every hole.",
+   "watertight": true
+  },
+  {
+   "part": "gear24",
+   "qty": 4,
+   "walls": 4,
+   "infill": 1.0,
+   "grams_each": 3.0,
+   "grams_total": 12.0,
+   "solid_cm3": 2.42,
+   "size_mm": [
+    26,
+    26,
+    7
+   ],
+   "at_infill": {
+    "15%": 3.0,
+    "25%": 3.0,
+    "40%": 3.0,
+    "100%": 3.0
+   },
+   "print_min_each": 10,
+   "why": "Small and loaded at the teeth: print solid.",
+   "watertight": true
+  },
+  {
+   "part": "motor_mount",
+   "qty": 2,
+   "walls": 3,
+   "infill": 0.5,
+   "grams_each": 6.6,
+   "grams_total": 13.1,
+   "solid_cm3": 5.3,
+   "size_mm": [
+    32,
+    32,
+    13
+   ],
+   "at_infill": {
+    "15%": 6.6,
+    "25%": 6.6,
+    "40%": 6.6,
+    "100%": 6.6
+   },
+   "print_min_each": 23,
+   "why": "Motor vibration + full thrust go through it.",
+   "watertight": true
+  },
+  {
+   "part": "hoop_clip",
+   "qty": 4,
+   "walls": 3,
+   "infill": 0.5,
+   "grams_each": 3.6,
+   "grams_total": 14.3,
+   "solid_cm3": 3.04,
+   "size_mm": [
+    13,
+    41,
+    10
+   ],
+   "at_infill": {
+    "15%": 3.5,
+    "25%": 3.5,
+    "40%": 3.6,
+    "100%": 3.8
+   },
+   "print_min_each": 13,
+   "why": "Holds the roll axle; thin, so mostly walls.",
+   "watertight": true
+  },
+  {
+   "part": "tray",
+   "qty": 1,
+   "walls": 2,
+   "infill": 0.15,
+   "grams_each": 13.2,
+   "grams_total": 13.2,
+   "solid_cm3": 10.61,
+   "size_mm": [
+    42,
+    82,
+    44
+   ],
+   "at_infill": {
+    "15%": 13.2,
+    "25%": 13.2,
+    "40%": 13.2,
+    "100%": 13.2
+   },
+   "print_min_each": 46,
+   "why": "Only holds the battery; light.",
+   "watertight": true
+  },
+  {
+   "part": "bumper_arm",
+   "qty": 1,
+   "walls": 2,
+   "infill": 0.2,
+   "grams_each": 3.6,
+   "grams_total": 3.6,
+   "solid_cm3": 4.13,
+   "size_mm": [
+    101,
+    20,
+    4
+   ],
+   "at_infill": {
+    "15%": 3.5,
+    "25%": 3.7,
+    "40%": 4.0,
+    "100%": 5.1
+   },
+   "print_min_each": 13,
+   "why": "Light knock only.",
+   "watertight": true
+  }
+ ],
+ "printed_total_g": 330.0,
+ "filament_g": 347,
+ "print_hours": 19.2
+}

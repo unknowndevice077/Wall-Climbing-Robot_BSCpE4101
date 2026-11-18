@@ -1,5 +1,6 @@
-<!-- Wall climbing robot, MuJoCo model. Meshes come from blender/build_robot.py.
-     Electronics are not modelled as shapes; their mass is lumped into the chassis. -->
+<!-- Wall climbing robot, MuJoCo model. Meshes + masses come from design/blender/build_robot.py:
+     climb.py overrides the masses below with design/mass_properties.json (weights of every printed and bought part).
+     Dimensions must match the KEY DIMENSIONS block in build_robot.py. -->
 <mujoco model="wall_climber">
   <compiler angle="radian" meshdir="meshes" autolimits="true"/>
   <option timestep="0.002" integrator="implicitfast"/>
@@ -13,22 +14,24 @@
   <default>
     <geom friction="0.9 0.02 0.002" solref="0.004 1"/>
     <default class="vis"><geom type="mesh" contype="0" conaffinity="0" density="0" group="1"/></default>
-    <default class="wheel"><geom type="cylinder" size="0.11 0.007" zaxis="0 1 0" mass="0.05" rgba="0 0 0 0" condim="4" friction="1.0 0.02 0.002"/></default>
+    <!-- 212 mm printed rim + inner-tube tire = 108 mm rolling radius -->
+    <default class="wheel"><geom type="cylinder" size="0.108 0.005" zaxis="0 1 0" mass="0.067" rgba="0 0 0 0" condim="4" friction="1.0 0.02 0.002"/></default>
   </default>
 
   <asset>
     <mesh name="chassis" file="chassis.stl"/>
-    <mesh name="wheel" file="wheel.stl"/>
+    <mesh name="wheel_l" file="wheel_l.stl"/>
+    <mesh name="wheel_r" file="wheel_r.stl"/>
     <mesh name="ring" file="ring.stl"/>
     <mesh name="prop" file="prop.stl"/>
     <texture name="sky" type="skybox" builtin="gradient" rgb1=".85 .9 .95" rgb2=".55 .6 .68" width="256" height="256"/>
     <texture name="grid" type="2d" builtin="checker" rgb1=".86 .87 .88" rgb2=".78 .79 .8" width="512" height="512"/>
     <material name="floor" texture="grid" texrepeat="8 8" reflectance="0"/>
     <material name="wall" rgba=".72 .74 .78 1"/>
-    <material name="green" rgba=".55 .8 .6 1"/>
-    <material name="carbon" rgba=".08 .08 .09 1"/>
-    <material name="plate" rgba=".5 .25 .1 1"/>
-    <material name="prop" rgba=".65 .65 .68 1"/>
+    <material name="green" rgba=".45 .75 .52 1"/>
+    <material name="frame" rgba=".25 .26 .28 1"/>
+    <material name="hoop" rgba=".74 .55 .33 1"/>
+    <material name="prop" rgba=".3 .3 .33 1"/>
   </asset>
 
   <worldbody>
@@ -39,38 +42,38 @@
     <geom name="wall" type="box" pos="1.1 0 1.25" size="0.1 1.5 1.25" material="wall"/>
     <camera name="side" pos="-0.25 -1.7 0.75" mode="targetbody" target="chassis" fovy="45"/>
 
-    <body name="chassis" pos="0 0 0.112">
+    <body name="chassis" pos="0 0 0.109">
       <freejoint name="root"/>
-      <!-- H-frame + ESCs + servos + wiring (0.37 kg) on the rails; battery + ESP32 (0.16 kg) in the tray under the cross beam -->
-      <geom name="chassis_col" type="box" size="0.18 0.16 0.012" pos="0 0 -0.012" mass="0.37" rgba="0 0 0 0"/>
-      <geom name="tray_col" type="box" size="0.02 0.045 0.022" pos="0 0 -0.068" mass="0.16" rgba="0 0 0 0"/>
-      <geom class="vis" mesh="chassis" material="plate"/>
+      <!-- rails + brackets, and the battery tray hanging under the cross beam -->
+      <geom name="chassis_col" type="box" size="0.19 0.15 0.008" pos="0 0 -0.012" mass="0.3" rgba="0 0 0 0"/>
+      <geom name="tray_col" type="box" size="0.021 0.041 0.021" pos="0 0 -0.0375" mass="0.15" rgba="0 0 0 0"/>
+      <geom class="vis" mesh="chassis" material="frame"/>
 
-      <body name="wheel_FL" pos="0.16 0.175 0"><joint name="w_FL" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wFL" class="wheel"/><geom class="vis" mesh="wheel" material="green"/></body>
-      <body name="wheel_FR" pos="0.16 -0.175 0"><joint name="w_FR" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wFR" class="wheel"/><geom class="vis" mesh="wheel" material="green"/></body>
-      <body name="wheel_RL" pos="-0.16 0.175 0"><joint name="w_RL" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wRL" class="wheel"/><geom class="vis" mesh="wheel" material="green"/></body>
-      <body name="wheel_RR" pos="-0.16 -0.175 0"><joint name="w_RR" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wRR" class="wheel"/><geom class="vis" mesh="wheel" material="green"/></body>
+      <body name="wheel_FL" pos="0.165 0.175 0"><joint name="w_FL" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wFL" class="wheel"/><geom class="vis" mesh="wheel_l" material="green"/></body>
+      <body name="wheel_FR" pos="0.165 -0.175 0"><joint name="w_FR" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wFR" class="wheel"/><geom class="vis" mesh="wheel_r" material="green"/></body>
+      <body name="wheel_RL" pos="-0.165 0.175 0"><joint name="w_RL" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wRL" class="wheel"/><geom class="vis" mesh="wheel_l" material="green"/></body>
+      <body name="wheel_RR" pos="-0.165 -0.175 0"><joint name="w_RR" type="hinge" axis="0 1 0" damping="0.0004"/><geom name="wRR" class="wheel"/><geom class="vis" mesh="wheel_r" material="green"/></body>
 
-      <!-- propeller hoops: pitch servo turns the hoop about the side axis -->
-      <body name="ring_F" pos="0.135 0 0.03">
+      <!-- propeller hoops: the pitch servo turns the hoop about the side axis through 24T gears -->
+      <body name="ring_F" pos="0.140 0 0.032">
         <joint name="pitch_F" type="hinge" axis="0 1 0" armature="0.0005" damping="0.01"/>
-        <geom type="cylinder" size="0.014 0.011" pos="0 0 0.019" mass="0.11" contype="0" conaffinity="0" rgba="0 0 0 0"/>
-        <geom class="vis" mesh="ring" material="carbon"/>
-        <site name="thrust_F" pos="0 0 0.034" size="0.01"/>
-        <body name="prop_F" pos="0 0 0.034">
+        <geom type="cylinder" size="0.03 0.01" pos="0 0 -0.01" mass="0.14" contype="0" conaffinity="0" rgba="0 0 0 0"/>
+        <geom class="vis" mesh="ring" material="hoop"/>
+        <site name="thrust_F" pos="0 0 0.010" size="0.01"/>
+        <body name="prop_F" pos="0 0 0.010">
           <joint name="spin_F" type="hinge" axis="0 0 1"/>
-          <geom class="vis" mesh="prop" material="prop" density="0"/>
+          <geom class="vis" mesh="prop" material="prop"/>
           <geom type="sphere" size="0.005" mass="0.002" contype="0" conaffinity="0" rgba="0 0 0 0"/>
         </body>
       </body>
-      <body name="ring_R" pos="-0.135 0 0.03">
+      <body name="ring_R" pos="-0.140 0 0.032">
         <joint name="pitch_R" type="hinge" axis="0 1 0" armature="0.0005" damping="0.01"/>
-        <geom type="cylinder" size="0.014 0.011" pos="0 0 0.019" mass="0.11" contype="0" conaffinity="0" rgba="0 0 0 0"/>
-        <geom class="vis" mesh="ring" material="carbon"/>
-        <site name="thrust_R" pos="0 0 0.034" size="0.01"/>
-        <body name="prop_R" pos="0 0 0.034">
+        <geom type="cylinder" size="0.03 0.01" pos="0 0 -0.01" mass="0.14" contype="0" conaffinity="0" rgba="0 0 0 0"/>
+        <geom class="vis" mesh="ring" material="hoop"/>
+        <site name="thrust_R" pos="0 0 0.010" size="0.01"/>
+        <body name="prop_R" pos="0 0 0.010">
           <joint name="spin_R" type="hinge" axis="0 0 1"/>
-          <geom class="vis" mesh="prop" material="prop" density="0"/>
+          <geom class="vis" mesh="prop" material="prop"/>
           <geom type="sphere" size="0.005" mass="0.002" contype="0" conaffinity="0" rgba="0 0 0 0"/>
         </body>
       </body>
@@ -78,10 +81,10 @@
   </worldbody>
 
   <actuator>
-    <!-- MG90S-class servo: ~0.2 N·m -->
+    <!-- MG90S servo through 1:1 gears: ~0.2 N·m -->
     <position name="pitch_F" joint="pitch_F" kp="1.5" kv="0.03" forcerange="-0.22 0.22" ctrlrange="-3.14 3.14"/>
     <position name="pitch_R" joint="pitch_R" kp="1.5" kv="0.03" forcerange="-0.22 0.22" ctrlrange="-3.14 3.14"/>
-    <!-- A2212 1400KV + 8045 prop on 3S: ~0.75 kgf = 7.4 N max, pushes along the hub axis -->
+    <!-- A2212 1400KV + 9045 prop on 3S. 7.4 N = 755 gf is a cautious number: MEASURE yours (docs/BUILD.md) and put it here -->
     <general name="thrust_F" site="thrust_F" gear="0 0 1 0 0 0" ctrlrange="0 7.4"/>
     <general name="thrust_R" site="thrust_R" gear="0 0 1 0 0 0" ctrlrange="0 7.4"/>
     <velocity name="spin_F" joint="spin_F" kv="0.0005" ctrlrange="-300 300"/>

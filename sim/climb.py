@@ -1,20 +1,59 @@
 """Wall climbing robot in MuJoCo: drive to the wall, tip onto it, climb using only prop thrust.
 
-  python sim/climb.py            -> opens the 3D viewer (live)
-  python sim/climb.py --video    -> headless run, writes sim/climb.mp4 + prints a log
-  add --real                     -> real-world limits (see REAL block below)
+  python sim/climb.py              -> opens the 3D viewer (live)
+  python sim/climb.py --video      -> headless run, writes sim/climb.mp4 + prints a log
+  add --real                       -> real-world limits (see REAL block below)
+  add --thrust-gf 820              -> your measured max thrust per motor (kitchen-scale test)
+  python sim/climb.py --min-thrust -> smallest thrust per motor that still climbs in --real
+Masses come from design/mass_properties.json (made by design/blender/build_robot.py).
 """
-import argparse, math, os, subprocess, sys
+import argparse, json, math, os, subprocess, sys
 import numpy as np
 import mujoco
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 m = mujoco.MjModel.from_xml_path(os.path.join(HERE, "wall_climber.xml"))
 d = mujoco.MjData(m)
-
 G = 9.81
-MASS = sum(m.body_mass[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "chassis"):])
-TMAX = 7.4
+
+
+def bid(name):
+    return mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, name)
+
+
+def set_body(name, kg, com=None):
+    b = bid(name)
+    if m.body_mass[b] > 0:
+        m.body_inertia[b] *= kg / m.body_mass[b]
+    m.body_mass[b] = kg
+    if com is not None:
+        m.body_ipos[b] = com
+
+# weights + centres of mass from the CAD (every printed part and bought part)
+MP_FILE = os.path.join(HERE, "..", "design", "mass_properties.json")
+if os.path.exists(MP_FILE):
+    mp = json.load(open(MP_FILE))
+    set_body("chassis", mp["chassis"]["mass_kg"], mp["chassis"]["com_m"])
+    hx, hy, hz = mp["hoop"]["com_m"]
+    set_body("ring_F", mp["hoop"]["mass_kg"], [hx, hy, hz])
+    set_body("ring_R", mp["hoop"]["mass_kg"], [-hx, hy, hz])   # roll servo is on the outer side of each hoop
+    for w in ("FL", "FR", "RL", "RR"):
+        set_body("wheel_" + w, mp["wheel"]["mass_kg"])
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--video", action="store_true")
+ap.add_argument("--real", action="store_true", help="servo/motor limits, IMU noise, heavier, worse grip, a bump")
+ap.add_argument("--seconds", type=float, default=14.0)
+ap.add_argument("--thrust-gf", type=float, default=755, help="max thrust per motor in grams-force (measure it)")
+ap.add_argument("--check", action="store_true", help="headless pass/fail, no video")
+ap.add_argument("--min-thrust", action="store_true")
+ARGS = ap.parse_args()
+
+TMAX = ARGS.thrust_gf * G / 1000
+for n in ("thrust_F", "thrust_R"):
+    m.actuator_ctrlrange[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, n)] = [0, TMAX]
+mujoco.mj_setConst(m, d)
+MASS = sum(m.body_mass[bid("chassis"):])
 TOP_Z = 1.75           # stop climbing here (wall is 2.5 m)
 CLIMB_SPEED = 0.18     # m/s
 
@@ -27,7 +66,7 @@ all_wheels = front_wheels | {mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, n) f
 state = {"phase": "DRIVE", "climb_i": 0.0}
 
 # --real: stuff the clean sim ignores. Controller still thinks it's the clean robot.
-REAL = "--real" in sys.argv
+REAL = ARGS.real
 rng = np.random.default_rng(7)
 SERVO_SLEW = 5.0        # rad/s, MG90S under load (~0.1 s/60deg no load)
 MOTOR_TAU = 0.08        # s, prop spin-up lag
@@ -35,9 +74,10 @@ IMU_BIAS = 1.5          # deg, MPU6050 mounted slightly off
 stats = {"phi_min": 9, "phi_max": -9, "t_peak": 0}
 real = {"F": {"phi": 0.0, "T": 0.0}, "R": {"phi": 0.0, "T": 0.0}}
 if REAL:
-    m.body_mass[chassis] += 0.095                                 # 10% heavier than planned
+    set_body("chassis", m.body_mass[chassis] + 0.1 * MASS)        # 10% heavier than planned
     for n in ("thrust_F", "thrust_R"):
-        m.actuator_ctrlrange[act[n]] = [0, 6.6]                   # battery sag: 7.4 N -> 6.6 N
+        m.actuator_ctrlrange[act[n]] = [0, TMAX * 0.89]           # battery sag at 3.7 V/cell: ~11% less thrust
+    mujoco.mj_setConst(m, d)
     for n in ("wFL", "wFR", "wRL", "wRR"):
         m.geom_friction[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, n)][0] = 0.6   # tube rubber on painted wall
 
@@ -70,7 +110,8 @@ def set_prop(name, f_world, R):
     cmd = mag * max(0.0, 1 - err / 0.6)
     if REAL:
         r, dt = real[name], m.opt.timestep
-        phi = min(math.radians(140), max(math.radians(-40), phi))  # 180deg servo: -40..140, 90 = prop pushes forward
+        lo = -4 if name == "F" else -40                           # front hoop hits the battery below -4 deg (CAD check)
+        phi = min(math.radians(140), max(math.radians(lo), phi))   # 180deg servo, 90 = prop pushes forward
         r["phi"] += max(-SERVO_SLEW * dt, min(SERVO_SLEW * dt, phi - r["phi"]))
         r["T"] += (cmd - r["T"]) * dt / MOTOR_TAU
         phi, cmd = r["phi"], r["T"]
@@ -162,10 +203,31 @@ def run_viewer():
             time.sleep(max(0, 10 * m.opt.timestep - (time.time() - t0)))
 
 
+def run_check(seconds):
+    while d.time < seconds:
+        controller(); mujoco.mj_step(m, d)
+    ok = state["phase"] == "HOLD" and d.xpos[chassis][2] > TOP_Z - 0.05
+    print(f"RESULT {'PASS' if ok else 'FAIL'} phase={state['phase']} z={d.xpos[chassis][2]:.2f} mass={MASS:.3f}kg thrust={ARGS.thrust_gf:.0f}gf")
+    return ok
+
+
+def min_thrust():
+    lo, hi = 500.0, 1200.0
+    for _ in range(8):
+        mid = (lo + hi) / 2
+        out = subprocess.run([sys.executable, __file__, "--check", "--real", "--thrust-gf", f"{mid:.0f}"], capture_output=True, text=True).stdout
+        ok = "RESULT PASS" in out
+        print(f"  {mid:6.0f} gf per motor: {'climbs' if ok else 'fails'}")
+        hi, lo = (mid, lo) if ok else (hi, mid)
+    print(f"MIN THRUST (real-world run): {hi:.0f} gf per motor for a {MASS * 1000:.0f} g robot")
+
+
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--video", action="store_true")
-    ap.add_argument("--real", action="store_true", help="servo/motor limits, IMU noise, heavier, worse grip, a bump")
-    ap.add_argument("--seconds", type=float, default=14.0)
-    a = ap.parse_args()
-    run_video(a.seconds) if a.video else run_viewer()
+    if ARGS.min_thrust:
+        min_thrust()
+    elif ARGS.check:
+        sys.exit(0 if run_check(ARGS.seconds) else 1)
+    elif ARGS.video:
+        run_video(ARGS.seconds)
+    else:
+        run_viewer()
