@@ -13,6 +13,10 @@ Built by a 5-person team.
 **Read before your first commit:** [CONTRIBUTING.md](CONTRIBUTING.md)
 **Using an AI tool?** It must follow [AGENTS.md](AGENTS.md).
 
+**The robot design** (thrust-vectoring climber, 1,039 g):
+[specs, weights and parts](docs/SPECIFICATIONS.md) · [build guide](docs/BUILD.md) · [setup checklist](docs/SETUP.md) ·
+[3D model + printable parts](design/README.md) · [simulation (MuJoCo + Webots)](sim/README.md)
+
 ---
 
 ## Who owns what
@@ -42,7 +46,9 @@ firmware/                 PlatformIO project (open THIS folder in VS Code for fi
 web/                      React + Vite app                                     (control/UI)
   src/protocol.ts         message types, must match docs/protocol.md
 scripts/build-web.mjs     builds web/ → gzips → firmware/data
-docs/                     protocol, decisions log, task backlog
+docs/                     protocol, decisions log, task backlog, robot specs/build/setup
+design/                   3D model (Blender script), printable STLs, weight report
+sim/                      MuJoCo + Webots climb simulations, Wokwi prototype
 ```
 
 ## How it works
