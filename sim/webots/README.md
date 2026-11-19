@@ -21,5 +21,6 @@ Same robot as the MuJoCo sim (`sim/wall_climber.xml`): CAD meshes from `sim/mesh
   ```
   Add `CLIMB_REAL=0` for the ideal run.
 
-Results (755 gf per motor): ideal on the wall at 2.6 s and holding at 10.9 s; real on the wall at 2.9 s and holding at 11.2 s.
+Results (755 gf per motor): ideal on the wall at 2.6 s and holding at 10.8 s; real on the wall at 2.8 s and holding at 11.1 s.
+Vertical wall only (the MuJoCo sim does the other walls).
 The MuJoCo sim gives about the same numbers.

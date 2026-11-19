@@ -5,6 +5,8 @@
   add --real                       -> real-world limits (see REAL block below)
   add --thrust-gf 820              -> your measured max thrust per motor (kitchen-scale test)
   python sim/climb.py --min-thrust -> smallest thrust per motor that still climbs in --real
+  python sim/climb.py --walls      -> tries lots of walls (angles, grip, bumps), prints what climbs
+  wall options: --wall-angle 75 (90 = vertical, >90 = overhang), --mu 0.4, --bumps 20 (mm)
 Masses come from design/mass_properties.json (made by design/blender/build_robot.py).
 """
 import argparse, json, math, os, subprocess, sys
@@ -12,9 +14,45 @@ import numpy as np
 import mujoco
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-m = mujoco.MjModel.from_xml_path(os.path.join(HERE, "wall_climber.xml"))
-d = mujoco.MjData(m)
 G = 9.81
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--video", action="store_true")
+ap.add_argument("--real", action="store_true", help="servo/motor limits, IMU noise, heavier, worse grip, a bump")
+ap.add_argument("--seconds", type=float, default=None)
+ap.add_argument("--thrust-gf", type=float, default=755, help="max thrust per motor in grams-force (measure it)")
+ap.add_argument("--check", action="store_true", help="headless pass/fail, no video")
+ap.add_argument("--min-thrust", action="store_true")
+ap.add_argument("--walls", action="store_true", help="run the wall sweep")
+ap.add_argument("--wall-angle", type=float, default=90, help="deg from the floor: 60 = ramp, 90 = vertical, 110 = overhang")
+ap.add_argument("--mu", type=float, default=None, help="wheel-on-wall grip (default 0.9, 0.6 with --real)")
+ap.add_argument("--bumps", type=float, default=0, help="height of ridges across the wall in mm (tiles, trim, cables)")
+ARGS = ap.parse_args()
+
+# wall: hinged at the floor line x = 1 m, tilted to --wall-angle. 3 m long.
+A = math.radians(ARGS.wall_angle)
+WALL_BASE = np.array([1.0, 0, 0])
+WALL_UP = np.array([math.cos(A), 0, math.sin(A)])      # up along the wall face
+WALL_OUT = np.array([-math.sin(A), 0, math.cos(A)])    # face normal, toward the robot
+MU = ARGS.mu if ARGS.mu is not None else (0.6 if ARGS.real else 0.9)
+
+spec = mujoco.MjSpec.from_file(os.path.join(HERE, "wall_climber.xml"))
+wall_rot = np.column_stack([-WALL_OUT, [0, 1, 0], WALL_UP])
+wall_quat = np.zeros(4)
+mujoco.mju_mat2Quat(wall_quat, wall_rot.flatten())
+wg = spec.geom("wall")
+wg.size = [0.1, 1.5, 1.5]
+wg.pos = WALL_BASE + WALL_UP * 1.5 - WALL_OUT * 0.1
+wg.quat = wall_quat
+wg.friction = [MU, 0.02, 0.002]
+if ARGS.bumps > 0:
+    hb = ARGS.bumps / 2000
+    for i, s_up in enumerate((0.45, 0.8, 1.15, 1.5)):   # ridges across the wall, every 35 cm
+        spec.worldbody.add_geom(name=f"bump{i}", type=mujoco.mjtGeom.mjGEOM_BOX, size=[hb, 1.4, 0.01],
+                                pos=WALL_BASE + WALL_UP * s_up + WALL_OUT * hb, quat=wall_quat,
+                                friction=[MU, 0.02, 0.002], rgba=[.6, .62, .66, 1])
+m = spec.compile()
+d = mujoco.MjData(m)
 
 
 def bid(name):
@@ -40,30 +78,23 @@ if os.path.exists(MP_FILE):
     for w in ("FL", "FR", "RL", "RR"):
         set_body("wheel_" + w, mp["wheel"]["mass_kg"])
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--video", action="store_true")
-ap.add_argument("--real", action="store_true", help="servo/motor limits, IMU noise, heavier, worse grip, a bump")
-ap.add_argument("--seconds", type=float, default=14.0)
-ap.add_argument("--thrust-gf", type=float, default=755, help="max thrust per motor in grams-force (measure it)")
-ap.add_argument("--check", action="store_true", help="headless pass/fail, no video")
-ap.add_argument("--min-thrust", action="store_true")
-ARGS = ap.parse_args()
-
 TMAX = ARGS.thrust_gf * G / 1000
 for n in ("thrust_F", "thrust_R"):
     m.actuator_ctrlrange[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, n)] = [0, TMAX]
 mujoco.mj_setConst(m, d)
 MASS = sum(m.body_mass[bid("chassis"):])
-TOP_Z = 1.75           # stop climbing here (wall is 2.5 m)
+TOP_S = 1.75           # stop climbing this far up the wall (wall is 3 m)
 CLIMB_SPEED = 0.18     # m/s
+PRESS_F, PRESS_R = 1.0, 2.0   # N into the wall per prop on a vertical wall (see controller)
 
 act = {n: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, n) for n in ("pitch_F", "pitch_R", "thrust_F", "thrust_R", "spin_F", "spin_R")}
 chassis = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "chassis")
 wall = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, "wall")
+wall_geoms = {wall} | {i for i in range(m.ngeom) if (m.geom(i).name or "").startswith("bump")}
 front_wheels = {mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, n) for n in ("wFL", "wFR")}
 all_wheels = front_wheels | {mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, n) for n in ("wRL", "wRR")}
 
-state = {"phase": "DRIVE", "climb_i": 0.0}
+state = {"phase": "DRIVE", "climb_i": 0.0, "p_ref": 0.0, "t_ref": 0.0}
 
 # --real: stuff the clean sim ignores. Controller still thinks it's the clean robot.
 REAL = ARGS.real
@@ -78,30 +109,31 @@ if REAL:
     for n in ("thrust_F", "thrust_R"):
         m.actuator_ctrlrange[act[n]] = [0, TMAX * 0.89]           # battery sag at 3.7 V/cell: ~11% less thrust
     mujoco.mj_setConst(m, d)
-    for n in ("wFL", "wFR", "wRL", "wRR"):
-        m.geom_friction[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, n)][0] = 0.6   # tube rubber on painted wall
+
+# MuJoCo takes the higher friction of the two geoms, so the wheels get MU too (floor stays 0.9)
+for n in ("wFL", "wFR", "wRL", "wRR"):
+    m.geom_friction[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, n)][0] = MU
 
 
 def touching_wall(geoms):
     for i in range(d.ncon):
         c = d.contact[i]
-        if (c.geom1 == wall and c.geom2 in geoms) or (c.geom2 == wall and c.geom1 in geoms):
+        if (c.geom1 in wall_geoms and c.geom2 in geoms) or (c.geom2 in wall_geoms and c.geom1 in geoms):
             return True
     return False
 
 
 def wheels_on_wall():
     return sum(1 for i in range(d.ncon) for g in (d.contact[i].geom1, d.contact[i].geom2)
-               if g in all_wheels and wall in (d.contact[i].geom1, d.contact[i].geom2))
+               if g in all_wheels and (d.contact[i].geom1 in wall_geoms or d.contact[i].geom2 in wall_geoms))
 
 
 def lerp(a, b, t):
     return a + (b - a) * t
 
 
-def set_prop(name, f_world, R):
-    """turn a wanted world-frame force into hoop angle + thrust (hoop pivots about body Y)"""
-    fb = R.T @ f_world
+def set_prop(name, fb):
+    # wanted force in the robot's frame (x = nose, z = top) -> hoop angle + thrust. hoop pivots about body y
     phi = math.atan2(fb[0], fb[2])
     mag = min(np.linalg.norm(fb), TMAX)
     # only push once the hoop is close to the commanded angle
@@ -124,42 +156,66 @@ def set_prop(name, f_world, R):
 def controller():
     R = d.xmat[chassis].reshape(3, 3)
     fwd = R[:, 0]
-    pitch = math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1])))   # 0 = flat, 90 = nose up
-    z, vz = d.xpos[chassis][2], d.qvel[2]
+    # 0 = flat, 90 = nose straight up, >90 = leaning back under an overhang. the IMU gives this from gravity
+    pitch = math.degrees(math.atan2(fwd[2], fwd[0]))
+    v_up = float(d.qvel[:3] @ fwd)                         # speed along the nose = up the wall once on it
+    vz = d.qvel[2]
+    s_up = float((d.xpos[chassis] - WALL_BASE) @ WALL_UP)  # sim only: how far up the wall
     if REAL:
         pitch += IMU_BIAS + rng.normal(0, 1.0)
+        v_up += rng.normal(0, 0.03)
         vz += rng.normal(0, 0.03)
-        # someone bumps it at 6 s: 1.5 N pull away from the wall for 0.25 s
-        d.xfrc_applied[chassis][:3] = [-1.5, 0, 0] if 6.0 < d.time < 6.25 else [0, 0, 0]
-    half_w = 0.5 * MASS * G
+        # someone pulls it off the wall at 6 s: 1.5 N for 0.25 s
+        d.xfrc_applied[chassis][:3] = 1.5 * WALL_OUT if 6.0 < d.time < 6.25 else [0, 0, 0]
+    p = math.radians(pitch)
+    # gravity in the robot's frame. on the wall, body z points away from the wall
+    g_x, g_z = -MASS * G * math.sin(p), -MASS * G * math.cos(p)
     ph = state["phase"]
 
     if ph == "DRIVE":
         f_front = f_rear = np.array([1.6, 0, 0.0])
         if touching_wall(front_wheels):
             state["phase"] = "TRANSITION"
+            state["p_ref"], state["t_ref"] = pitch, d.time
     if ph in ("TRANSITION", "CLIMB", "HOLD"):
-        w = min(1.0, max(0.0, pitch / 80))
-        # on the wall: up-force for the weight + push into the wall so the top wheels don't peel
-        if ph == "TRANSITION" and pitch > 80 and (REAL or wheels_on_wall() >= 3):
-            state["phase"] = ph = "CLIMB"
-        if ph == "CLIMB" and z > TOP_Z:
+        if ph == "TRANSITION":
+            # done when the nose is up (vertical wall) or the pitch stopped changing (ramp / overhang: it's flat on the face)
+            if pitch > 80 and pitch < 100 and (REAL or wheels_on_wall() >= 3):
+                state["phase"] = ph = "CLIMB"
+            elif d.time - state["t_ref"] > 0.3:
+                if pitch > 15 and abs(pitch - state["p_ref"]) < 3:
+                    state["phase"] = ph = "CLIMB"
+                state["p_ref"], state["t_ref"] = pitch, d.time
+        if ph == "CLIMB" and s_up > TOP_S:
             state["phase"] = ph = "HOLD"
         target_v = CLIMB_SPEED if ph == "CLIMB" else 0.0
         if ph != "TRANSITION":
-            state["climb_i"] += (target_v - vz) * m.opt.timestep
-            state["climb_i"] = max(-1, min(1, state["climb_i"]))
-        up = half_w + 3.0 * (target_v - vz) + 4.0 * state["climb_i"]
-        wall_front = np.array([4.2, 0, up])    # top hoop pushes harder into the wall (peel moment)
-        wall_rear = np.array([2.6, 0, up])
-        # nose-up needs almost all front thrust going UP; pushing hard into the wall pitches the nose back down
-        tr_front = np.array([1.0, 0, 7.0])
-        tr_rear = np.array([2.0, 0, 1.5])       # roll the rear wheels in
-        f_front = lerp(tr_front, wall_front, w) if ph == "TRANSITION" else wall_front
-        f_rear = lerp(tr_rear, wall_rear, w) if ph == "TRANSITION" else wall_rear
+            state["climb_i"] = max(-1, min(1, state["climb_i"] + (target_v - v_up) * m.opt.timestep))
+        # along the wall: cancel the weight's pull down the face + speed control
+        along = -g_x + 2 * (3.0 * (target_v - v_up) + 4.0 * state["climb_i"])
+        # into the wall: keep it light. the props sit 150 mm off the wall and the CG 109 mm, so the thrust tips
+        # the top in and tries to lift the BOTTOM wheels -> rear pushes harder. pushing hard just wastes thrust
+        # and jams the wheels on bumps. scales with how much weight hangs on the face; on a ramp gravity
+        # already presses it on (g_z < 0), under an overhang it pulls it off (g_z > 0)
+        k = max(0.4, -g_x / (MASS * G))
+        press_f = max(0.5, PRESS_F * k + g_z / 2)
+        press_r = max(0.5, PRESS_R * k + g_z / 2)
+        wall_front = np.array([along / 2, 0, -press_f])
+        wall_rear = np.array([along / 2, 0, -press_r])
+        if ph == "TRANSITION":
+            # world frame (x = toward the wall, z = up). nose-up needs almost all front thrust going UP,
+            # rear rolls the back wheels in. blend toward "hang on a vertical wall" as the nose comes up
+            c, sn = math.cos(p), math.sin(p)
+            to_body = lambda f: np.array([f[0] * c + f[2] * sn, 0, -f[0] * sn + f[2] * c])
+            w = min(1.0, max(0.0, pitch / 80))
+            up = 0.5 * MASS * G - 3.0 * vz
+            f_front = to_body(lerp(np.array([1.0, 0, 7.0]), np.array([4.2, 0, up]), w))
+            f_rear = to_body(lerp(np.array([2.0, 0, 1.5]), np.array([2.6, 0, up]), w))
+        else:
+            f_front, f_rear = wall_front, wall_rear
 
-    set_prop("F", f_front, R)
-    set_prop("R", f_rear, R)
+    set_prop("F", f_front)
+    set_prop("R", f_rear)
     spin = 250 * min(1, d.ctrl[act["thrust_F"]] / 2 + 0.1)
     d.ctrl[act["spin_F"]], d.ctrl[act["spin_R"]] = spin, -spin
     return pitch
@@ -206,8 +262,10 @@ def run_viewer():
 def run_check(seconds):
     while d.time < seconds:
         controller(); mujoco.mj_step(m, d)
-    ok = state["phase"] == "HOLD" and d.xpos[chassis][2] > TOP_Z - 0.05
-    print(f"RESULT {'PASS' if ok else 'FAIL'} phase={state['phase']} z={d.xpos[chassis][2]:.2f} mass={MASS:.3f}kg thrust={ARGS.thrust_gf:.0f}gf")
+    s_up = float((d.xpos[chassis] - WALL_BASE) @ WALL_UP)
+    ok = state["phase"] == "HOLD" and s_up > TOP_S - 0.05
+    print(f"RESULT {'PASS' if ok else 'FAIL'} phase={state['phase']} up_wall={s_up:.2f}m mass={MASS:.3f}kg thrust={ARGS.thrust_gf:.0f}gf "
+          f"wall={ARGS.wall_angle:.0f}deg mu={MU} bumps={ARGS.bumps:.0f}mm")
     return ok
 
 
@@ -222,12 +280,32 @@ def min_thrust():
     print(f"MIN THRUST (real-world run): {hi:.0f} gf per motor for a {MASS * 1000:.0f} g robot")
 
 
+def walls_sweep():
+    # every run is --real. one thing changes at a time, the rest stays at: vertical, mu 0.6, flat
+    from concurrent.futures import ThreadPoolExecutor
+    runs = [("angle", f"{a} deg", ["--wall-angle", str(a)]) for a in (30, 45, 60, 75, 90, 95, 100, 110)]
+    runs += [("grip", f"mu {mu}", ["--mu", str(mu)]) for mu in (0.9, 0.6, 0.4, 0.3, 0.2, 0.1)]
+    runs += [("bumps", f"{b} mm", ["--bumps", str(b)]) for b in (5, 10, 15, 20, 25, 30)]
+
+    def one(r):
+        out = subprocess.run([sys.executable, __file__, "--check", "--real", "--thrust-gf", str(ARGS.thrust_gf)] + r[2],
+                             capture_output=True, text=True).stdout
+        return r, "climbs" if "RESULT PASS" in out else "FAILS  " + out.strip().splitlines()[-1].split(" mass")[0][12:]
+
+    with ThreadPoolExecutor(max(1, os.cpu_count() - 1)) as ex:
+        for (kind, label, _), res in ex.map(one, runs):
+            print(f"  {kind:<6} {label:<8} {res}", flush=True)
+
+
 if __name__ == "__main__":
+    if ARGS.walls:
+        walls_sweep()
+        sys.exit()
     if ARGS.min_thrust:
         min_thrust()
     elif ARGS.check:
-        sys.exit(0 if run_check(ARGS.seconds) else 1)
+        sys.exit(0 if run_check(ARGS.seconds or 18) else 1)
     elif ARGS.video:
-        run_video(ARGS.seconds)
+        run_video(ARGS.seconds or 16)
     else:
         run_viewer()

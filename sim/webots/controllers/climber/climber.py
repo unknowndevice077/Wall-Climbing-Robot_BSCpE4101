@@ -123,7 +123,7 @@ while bot.step(dt_ms) != -1:
         if phase != "TRANSITION":
             climb_i = max(-1, min(1, climb_i + (target_v - vz) * dt))
         up = half_w + 3.0 * (target_v - vz) + 4.0 * climb_i
-        wall_front, wall_rear = [4.2, 0, up], [2.6, 0, up]   # top hoop pushes harder: peel moment
+        wall_front, wall_rear = [1.0, 0, up], [2.0, 0, up]   # light press, rear harder: thrust sits 150 mm off the wall, CG 109
         tr_front, tr_rear = [1.0, 0, 7.0], [2.0, 0, 1.5]     # nose-up needs the front thrust going UP
         if phase == "TRANSITION":
             f_front = [a + (b - a) * w for a, b in zip(tr_front, wall_front)]

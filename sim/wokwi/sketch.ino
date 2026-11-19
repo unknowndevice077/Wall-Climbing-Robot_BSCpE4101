@@ -111,8 +111,8 @@ void control() {
     } else {                                   // on the wall: stick = climb / hold / descend
       phase = stick > 0.05 ? "climb" : stick < -0.05 ? "descend" : "hold";
       float up = halfW * (1.03 + 0.12 * stick);
-      fFx = 4.2; fFz = up;                     // top hoop pushes harder: stops the top wheels peeling
-      fRx = 2.6; fRz = up;
+      fFx = 1.0; fFz = up;                     // light press, rear harder: thrust is further off the wall than the CG
+      fRx = 2.0; fRz = up;
     }
   } else phase = "idle";
 
