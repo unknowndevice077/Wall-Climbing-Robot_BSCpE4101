@@ -191,11 +191,11 @@ Put your measured thrust into the sim: `python sim/climb.py --video --real --thr
 ## 10. Simulation results (with the CAD weights)
 
 `python sim/climb.py --video` (ideal) and `python sim/climb.py --video --real`. The real run makes the robot 10% heavier,
-cuts thrust by 11% (battery sag) and drops grip to μ 0.6. It also adds servo speed and angle limits (including the -4° front limit),
+cuts thrust by 11% (battery sag) and drops wall grip to μ 0.6. It also adds servo speed and angle limits (including the -4° front limit),
 IMU noise and bias, motor spin-up lag, and a pull off the wall at 6 s.
 
 | | Ideal | Real-world |
 |---|---|---|
-| On the wall after | 1.8 s | 2.8 s |
+| On the wall after | 1.8 s | 2.9 s |
 | Reaches 1.75 m and holds | yes | yes, survives the pull |
 | Minimum thrust per motor to climb | - | 721 gf |

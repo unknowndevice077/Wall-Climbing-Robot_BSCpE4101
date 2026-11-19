@@ -32,7 +32,7 @@ they just roll. An ESP32 reads the tilt from an MPU6050 and sets each hoop's ang
 | Controller | ESP32 DevKit V1, MPU6050 IMU, front limit-switch bumper, battery voltage divider |
 | Control link | Wi-Fi from the ESP32 (AP `WallBot`), phone or laptop web UI. No RC radio |
 | Power for logic + servos | XL4015 buck, 5.0 V |
-| Wall surface | flat and smooth (painted wall, whiteboard, plywood). The wheels need grip: μ >= 0.6 |
+| Walls | any material, any grip (μ 0.1+), from 30 deg ramps up to vertical, bumps up to 20 mm. Not overhangs or ceilings |
 | Cost | ₱5,155 (₱4,505 if the school gives the filament) |
 
 ## Weight of every part
@@ -112,6 +112,22 @@ isn't enough any more: rerun `python sim/climb.py --min-thrust`.
 
 Prices are typical Shopee/Lazada prices; check them before ordering. Budget notes are in [BUILD.md §2](BUILD.md).
 
+## Walls it can climb
+
+The props hold the robot on the wall, not suction or magnets, and the wheels roll freely. So the wall material and
+grip don't matter: glass, tiles, painted concrete, wood, metal, whiteboard all work the same (sim: μ 0.1 to 0.9).
+
+| Wall | OK? |
+|---|---|
+| Vertical (90 deg) | yes |
+| Leaning away, like a ramp (30-90 deg) | yes |
+| Ridges up to 20 mm (tile edges, door trim, cables) | yes |
+| Ridges 25 mm+ (window sills, shelves) | no, it gets stuck under it |
+| Overhangs (leaning toward the robot) and ceilings | no, the front wheels jam when tipping up |
+| Very rough or curved walls (rock, pipes) | not tested |
+
+Run `python sim/climb.py --walls` to check again after a design change.
+
 ## Pins (proposal, lead still has to OK it)
 
 | Signal | ESP32 pin |
@@ -133,8 +149,9 @@ Wiring diagram and placement: [BUILD.md §6-7](BUILD.md).
 | Hoops never hit the frame, wheels or electronics over the full servo range | Blender (`design/blender/build_robot.py`) | CLEARANCE OK |
 | Printed parts are watertight and printable | Blender | all 7 parts OK |
 | Climbs and holds at 1.75 m, ideal | MuJoCo (`sim/climb.py`) | on the wall 1.8 s, PASS |
-| Climbs with battery sag, μ 0.6, +10% weight, servo limits, IMU noise, a pull off the wall | MuJoCo `--real` | on the wall 2.8 s, PASS |
-| Same climb in a second physics engine | Webots (`sim/webots/`) | ideal 2.6 s, real 2.9 s, both PASS |
+| Climbs with battery sag, μ 0.6, +10% weight, servo limits, IMU noise, a pull off the wall | MuJoCo `--real` | on the wall 2.9 s, PASS |
+| Ramps 30-90 deg, grip μ 0.1-0.9, ridges up to 20 mm | MuJoCo `--walls` | PASS. Overhangs and 25 mm+ ridges fail |
+| Same climb in a second physics engine | Webots (`sim/webots/`) | ideal 2.6 s, real 2.8 s, both PASS |
 | Smallest thrust per motor that still climbs | MuJoCo `--min-thrust` | 721 gf |
 
 Nothing has been printed or built yet. The numbers to check first on real hardware are the thrust test (>= 750 g per
