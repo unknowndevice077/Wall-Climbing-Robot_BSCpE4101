@@ -1,27 +1,27 @@
-# Build guide: thrust-vectoring wall climber
+# Build guide
 
 Design from *Wall Climbing Design.docx*: 4 big star-spoke wheels, 2 propellers in tilting hoops, a light frame.
 The wheels roll freely. The props do all the work: they push the robot into the wall and hold it up.
 Every number here comes from the CAD ([design/](../design/README.md)) or the physics sim ([sim/](../sim/README.md)).
 First-time setup checklist: [SETUP.md](SETUP.md).
 
-> Pins, parts and frame below are a **proposal**. In this repo they go through a *Hardware change* issue and
+> Pins, parts and frame below are a proposal. In this repo they go through a *Hardware change* issue and
 > `docs/decisions.md` before anyone edits `firmware/include/config.h`.
 
 ---
 
-## 1. The numbers that matter
+## 1. Key numbers
 
 | | Value | Where it comes from |
 |---|---|---|
-| Robot weight | **1,039 g** (330 g printed + 709 g bought) | `design/PARTS_REPORT.md` |
+| Robot weight | 1,039 g (330 g printed + 709 g bought) | `design/PARTS_REPORT.md` |
 | Centre of mass above the surface | 109 mm | CAD |
-| Thrust needed just to hang on the wall | 1.20 × weight = **1,245 gf** | CAD + physics |
-| Minimum thrust per motor that still climbs (real-world sim) | **721 gf** | `python sim/climb.py --min-thrust` |
-| **Thrust-test pass mark** | **≥ 750 g per motor, aim for 800** | 4% margin over the minimum |
-| Weight limit | **≤ 1,050 g** as built | every 50 g extra needs ~35 gf more per motor |
+| Thrust needed just to hang on the wall | 1.20 x weight = 1,245 gf | CAD + physics |
+| Minimum thrust per motor that still climbs (real-world sim) | 721 gf | `python sim/climb.py --min-thrust` |
+| Thrust-test pass mark | >= 750 g per motor, aim for 800 | 4% margin over the minimum |
+| Weight limit | <= 1,050 g as built | every 50 g extra needs ~35 gf more per motor |
 
-## 2. Parts (one robot, ₱5,000 = ₱200 × 25)
+## 2. Parts (one robot, ₱5,000 = ₱200 x 25)
 
 Typical Shopee/Lazada prices. Check before ordering.
 
@@ -33,8 +33,8 @@ Typical Shopee/Lazada prices. Check before ordering.
 | 4 | Buck converter | XL4015 5 A step-down (servos + ESP32) | 1 | 120 |
 | 5 | Battery | 3S 11.1 V 1500 mAh 25C LiPo, XT60 | 1 | 750 |
 | 6 | Charger | B3 2S/3S balance charger | 1 | 220 |
-| 7 | LiPo alarm | 1–8S voltage checker / buzzer | 1 | 60 |
-| 8 | Power wiring | XT60 pairs ×3, 14 AWG silicone wire 1 m, toggle switch | 1 | 180 |
+| 7 | LiPo alarm | 1-8S voltage checker / buzzer | 1 | 60 |
+| 8 | Power wiring | XT60 pairs x3, 14 AWG silicone wire 1 m, toggle switch | 1 | 180 |
 | 9 | Small parts | Dupont wires, perfboard, 100k + 27k resistors | 1 | 80 |
 | 10 | Brushless motor | A2212 1400KV with prop adapter | 2 | 500 |
 | 11 | ESC | 30 A SimonK / BLHeli | 2 | 520 |
@@ -43,15 +43,15 @@ Typical Shopee/Lazada prices. Check before ordering.
 | 14 | Prop hoops | 10" wooden embroidery hoop (use the inner ring) | 2 | 160 |
 | 15 | Filament | PLA+ 1 kg (uses ~350 g, rest for reprints) | 1 | 650 |
 | 16 | Tires | Bicycle inner tube cut into 10 mm strips | 1 | 50 |
-| 17 | Rails + beam | Aluminium square tube 8 × 8 × 0.8 mm, 1.5 m | 1 | 150 |
-| 18 | Roll axles | Carbon tube 6 × 4 mm, 0.6 m | 1 | 150 |
-| 19 | Bearings | 624ZZ (4×13×5) ×8 for wheels, 693ZZ (3×8×4) ×4 for hoop pivots | 1 | 240 |
-| 20 | Fasteners | M4×40 bolts + lock nuts ×4, M3 kit, M2 servo screws | 1 | 200 |
+| 17 | Rails + beam | Aluminium square tube 8 x 8 x 0.8 mm, 1.5 m | 1 | 150 |
+| 18 | Roll axles | Carbon tube 6 x 4 mm, 0.6 m | 1 | 150 |
+| 19 | Bearings | 624ZZ (4x13x5) x8 for wheels, 693ZZ (3x8x4) x4 for hoop pivots | 1 | 240 |
+| 20 | Fasteners | M4x40 bolts + lock nuts x4, M3 kit, M2 servo screws | 1 | 200 |
 | 21 | Consumables | Zip ties, 3M foam tape, velcro strap, CA glue | 1 | 150 |
-| | **Total** | | | **5,155** |
+| | Total | | | 5,155 |
 
-That's **₱155 over**. If the school lab gives you filament (most do), it's **₱4,505** and ₱495 is left for spares
-(a spare servo + a spare prop pair). If not: buy one prop pair (−₱70) and borrow a charger (−₱220).
+That's ₱155 over. If the school lab gives you filament (most do), it's ₱4,505 and ₱495 is left for spares
+(a spare servo + a spare prop pair). If not: buy one prop pair (-₱70) and borrow a charger (-₱220).
 
 No RC radio: the ESP32 makes its own Wi-Fi and the phone is the controller (this repo's web UI).
 
@@ -65,34 +65,34 @@ Full breakdown with every part: [design/PARTS_REPORT.md](../design/PARTS_REPORT.
 | Left hoop: hoop, clips, roll axle, motor mount, motor, prop, roll servo, pivot gear | 144 |
 | Right hoop (no pivot gear) | 141 |
 | 4 wheels: printed wheel + tire + 2 bearings each | 268 |
-| **Total** | **1,039** |
+| Total | 1,039 |
 
 Weigh every part when it arrives and fix the `HW_*` numbers in `design/blender/build_robot.py`. Rebuild, then rerun
 `python sim/climb.py --min-thrust` to get your real pass mark.
 
 ## 4. 3D printing
 
-STLs are in [design/print/](../design/print/), in **mm**, already lying flat in the right orientation. **Don't rotate or scale them.**
-Printer: any 220 × 220 mm bed (Ender-3 class). The wheel is 212 mm wide, so it just fits.
+STLs are in [design/print/](../design/print/), in mm, already lying flat in the right orientation. Don't rotate or scale them.
+Printer: any 220 x 220 mm bed (Ender-3 class). The wheel is 212 mm wide, so it just fits.
 
 | File | Qty | Walls | Infill | Supports | g each | Time each |
 |---|---|---|---|---|---|---|
-| `wheel.stl` | 4 | 2 | 20% gyroid | no, use a **5 mm brim** (thin and wide, warps) | 52 | 3 h |
-| `bracket.stl` | 4 (**2 normal + 2 mirrored** in the slicer) | 3 | 40% gyroid | no | 16 | 1 h |
+| `wheel.stl` | 4 | 2 | 20% gyroid | no, use a 5 mm brim (thin and wide, warps) | 52 | 3 h |
+| `bracket.stl` | 4 (2 normal + 2 mirrored in the slicer) | 3 | 40% gyroid | no | 16 | 1 h |
 | `gear24.stl` | 4 | 4 | 100% | no | 3 | 10 min |
 | `motor_mount.stl` | 2 | 3 | 50% gyroid | no | 7 | 25 min |
 | `hoop_clip.stl` | 4 | 3 | 50% gyroid | no | 4 | 15 min |
 | `tray.stl` | 1 | 2 | 15% gyroid | no | 13 | 45 min |
 | `bumper_arm.stl` | 1 | 2 | 20% gyroid | no | 4 | 15 min |
 
-Total ≈ **350 g of filament, ~19 h of printing**. Common settings: PLA+, 0.4 mm nozzle, 0.2 mm layers,
+Total ~ 350 g of filament, ~19 h of printing. Common settings: PLA+, 0.4 mm nozzle, 0.2 mm layers,
 4 top / 4 bottom layers. PETG is better for the wheels (doesn't crack on a fall) if you have it.
 
-Why these infills: the wheel rim and spokes are only 3.5–6 mm thick, so 2 walls already make them nearly solid
+Infill: the wheel rim and spokes are only 3.5-6 mm thick, so 2 walls already make them nearly solid
 (the infill only matters in the hub). Brackets carry the hoop's thrust and the wheel axle, so they get 3 walls and 40%.
 Gears are small and loaded on the teeth, so print them solid. Grams at other infills are in PARTS_REPORT.md.
 
-**Print one bracket and one gear first** and check the fit:
+Print one bracket and one gear first and check the fit:
 - holes print ~0.2 mm small: drill the bearing seats to size (624: 13 mm, 693: 8 mm), axle 4.2 mm, M3 3.4 mm
 - an MG90S must sit flat on the bracket's inner face with its shaft through the 9 mm hole
 - the two gears must mesh with no slop when the servo and pivot are in their holes
@@ -103,36 +103,36 @@ Units: mm. X forward, Y left, Z up. Origin = centre between the 4 axles, at axle
 
 | Item | Size / position |
 |---|---|
-| Wheelbase × track | **330 × 350** (wheel centres X ±165, Y ±175) |
-| Wheels | Ø212 printed + inner-tube tire = Ø216; 10 wide, hub 14 wide; 2 × 624ZZ, M4 axle |
-| Rails | 8×8 alu tube, 380 long, at Y ±146, Z −12 |
-| Cross beam | 8×8 alu tube, 284 long, at X 0, Z −12 |
-| Corner brackets | printed, bolted to the outside of the rails (2 × M3 each). Carry wheel axle, hoop pivot, pitch servo |
-| Hoop pivots | X ±140, Z +32, axis along Y, M3 pin in a 693ZZ |
-| Pitch drive | MG90S on the inner face of the **left** brackets, 24T gear on its horn → 24T gear on the hoop pin (1:1) |
-| Hoops | 10" embroidery hoop inner ring (Ø254, 8 × 10 section), hoop clips at both ends of a Ø6 carbon roll axle 30 mm below the hoop |
+| Wheelbase x track | 330 x 350 (wheel centres X +/-165, Y +/-175) |
+| Wheels | Ø212 printed + inner-tube tire = Ø216; 10 wide, hub 14 wide; 2 x 624ZZ, M4 axle |
+| Rails | 8x8 alu tube, 380 long, at Y +/-146, Z -12 |
+| Cross beam | 8x8 alu tube, 284 long, at X 0, Z -12 |
+| Corner brackets | printed, bolted to the outside of the rails (2 x M3 each). Carry wheel axle, hoop pivot, pitch servo |
+| Hoop pivots | X +/-140, Z +32, axis along Y, M3 pin in a 693ZZ |
+| Pitch drive | MG90S on the inner face of the left brackets, 24T gear on its horn -> 24T gear on the hoop pin (1:1) |
+| Hoops | 10" embroidery hoop inner ring (Ø254, 8 x 10 section), hoop clips at both ends of a Ø6 carbon roll axle 30 mm below the hoop |
 | Motor | on the printed mount riding the roll axle, prop plane 10 mm above the hoop centre |
-| Tray | hangs under the cross beam, floor at Z −48; with the ESP32 under it, 50 mm ground clearance |
+| Tray | hangs under the cross beam, floor at Z -48; with the ESP32 under it, 50 mm ground clearance |
 
-**Keep-out rule:** each hoop, with its clips, motor and prop, sweeps a ball of about 130 mm around its pivot.
+Keep-out rule: each hoop, with its clips, motor and prop, sweeps a ball of about 130 mm around its pivot.
 `design/blender/build_robot.py` sweeps both hoops through their full servo range against every part and every piece
 of electronics, and prints `CLEARANCE OK`. Fixes it already forced:
-- an **H-frame** (no centre spine)
+- an H-frame (no centre spine)
 - hoops 140 mm from the centre
 - the battery 3 mm lower
 - rounded clip ends
 - the roll servos on the outer side of each hoop
-- **the front hoop must not tilt back past −4°** (it would hit the battery). Reverse uses the rear hoop only
+- the front hoop must not tilt back past -4° (it would hit the battery). Reverse uses the rear hoop only
 
 ## 6. Where the electronics go
 
 | Part | Place |
 |---|---|
 | Battery | On the tray floor, lying sideways (long side along Y), velcro strap through the side slots |
-| ESP32 + MPU6050 | Foam-taped **under** the tray floor, MPU6050 flat with its X arrow pointing forward. USB faces sideways |
-| ESCs | On top of the right rail, X +30 and −30 mm (zip ties) |
+| ESP32 + MPU6050 | Foam-taped under the tray floor, MPU6050 flat with its X arrow pointing forward. USB faces sideways |
+| ESCs | On top of the right rail, X +30 and -30 mm (zip ties) |
 | Buck converter | On top of the left rail, centred |
-| Pitch servos | Inner face of the left brackets (front + rear), 2 × M2 screws |
+| Pitch servos | Inner face of the left brackets (front + rear), 2 x M2 screws |
 | Roll servos | On the outer hoop clip of each hoop, short M2 pushrod to the motor mount |
 | Bumper switch | End of the bumper arm on the front-left bracket, lever 3 mm past the front tires |
 | Power switch | Rear end of the right rail |
@@ -150,38 +150,38 @@ of electronics, and prints `CLEARANCE OK`. Fixes it already forced:
 
 | Signal | ESP32 GPIO | Note |
 |---|---|---|
-| ESC front / rear | 25 / 26 | 50 Hz, 1000–2000 µs |
-| Pitch servo front / rear | 18 / 32 | 50 Hz, 500–2500 µs, `ledcSetup` (core 2.0.17). **Front limit −4°** |
+| ESC front / rear | 25 / 26 | 50 Hz, 1000-2000 µs |
+| Pitch servo front / rear | 18 / 32 | 50 Hz, 500-2500 µs, `ledcSetup` (core 2.0.17). Front limit -4° |
 | Roll servo front / rear | 19 / 33 | |
 | MPU6050 SDA / SCL | 21 / 22 | address 0x68 |
 | Front bumper | 27 | to GND, `INPUT_PULLUP` |
-| Battery voltage | 34 | 100k top / 27k bottom → 12.6 V reads 2.68 V |
+| Battery voltage | 34 | 100k top / 27k bottom -> 12.6 V reads 2.68 V |
 | Status LED | 2 | on-board LED |
 
 ## 8. Build order
 
 1. Print a test bracket + gear (section 4). Fix the fit, then print the rest.
-2. Cut the tube: 2 × 380 mm rails, 1 × 284 mm beam. Join the beam to the rails (M3 through both, or an L-bracket).
+2. Cut the tube: 2 x 380 mm rails, 1 x 284 mm beam. Join the beam to the rails (M3 through both, or an L-bracket).
 3. Press 624ZZ bearings into the wheels, stretch the tire strips into the rim channel (a drop of CA at the joint).
 4. Bolt the brackets to the rails (2 normal on the right, 2 mirrored on the left). Fit the wheels on M4 bolts with a washer.
-5. Drill the hoops: 2 × Ø3 holes for the pivot pins (opposite each other) and slide on the 2 hoop clips 90° from them.
+5. Drill the hoops: 2 x Ø3 holes for the pivot pins (opposite each other) and slide on the 2 hoop clips 90° from them.
    Push the carbon roll axle through both clips with the motor mount in the middle.
-6. Mount the motors on the mounts. **No props yet.**
+6. Mount the motors on the mounts. No props yet.
 7. Fit the 693ZZ in the brackets, pivot pins through, 24T gears on the left pins and on the pitch-servo horns.
 8. Tray: battery on top, ESP32 + MPU6050 under it. Zip-tie the tray posts to the beam.
-9. Set the buck to **5.0 V with a multimeter before connecting anything.** Wire it all (section 7).
+9. Set the buck to 5.0 V with a multimeter before connecting anything. Wire it all (section 7).
    Multimeter check for shorts before the first power-up.
-10. Set both pitch servos to **40°** before tightening the gears: servo angle = hoop angle + 40°, so 40° = hoop flat,
+10. Set both pitch servos to 40° before tightening the gears: servo angle = hoop angle + 40°, so 40° = hoop flat,
     130° = prop pushing forward. The gears reverse the direction; the firmware `flip` setting fixes that.
-11. Calibrate both ESCs with **props off**.
+11. Calibrate both ESCs with props off.
 
 ## 9. Tests before the wall
 
 | Test | How | Pass |
 |---|---|---|
-| Thrust | Motor + prop on a stick pushing down on a kitchen scale, full throttle, freshly charged battery | **≥ 750 g each** (aim 800) |
-| Weight | Kitchen scale, everything on | ≤ 1,050 g |
-| Hoop sweep | Command each hoop slowly through its range (front −4 → 140°, rear −40 → 140°) | touches nothing |
+| Thrust | Motor + prop on a stick pushing down on a kitchen scale, full throttle, freshly charged battery | >= 750 g each (aim 800) |
+| Weight | Kitchen scale, everything on | <= 1,050 g |
+| Hoop sweep | Command each hoop slowly through its range (front -4 -> 140°, rear -40 -> 140°) | touches nothing |
 | IMU | Tilt the robot by hand | pitch reads 0 flat, 90 nose-up |
 | Floor drive | Props on, low throttle | drives straight, stops when the link drops |
 | Wall test | [SAFETY.md](../SAFETY.md): mat under the wall, one person on the power switch | climbs and holds |
@@ -191,11 +191,11 @@ Put your measured thrust into the sim: `python sim/climb.py --video --real --thr
 ## 10. Simulation results (with the CAD weights)
 
 `python sim/climb.py --video` (ideal) and `python sim/climb.py --video --real`. The real run makes the robot 10% heavier,
-cuts thrust by 11% (battery sag) and drops grip to μ 0.6. It also adds servo speed and angle limits (including the −4° front limit),
+cuts thrust by 11% (battery sag) and drops grip to μ 0.6. It also adds servo speed and angle limits (including the -4° front limit),
 IMU noise and bias, motor spin-up lag, and a pull off the wall at 6 s.
 
 | | Ideal | Real-world |
 |---|---|---|
 | On the wall after | 1.8 s | 2.8 s |
 | Reaches 1.75 m and holds | yes | yes, survives the pull |
-| Minimum thrust per motor to climb | – | 721 gf |
+| Minimum thrust per motor to climb | - | 721 gf |

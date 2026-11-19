@@ -1,12 +1,6 @@
-"""Wall climber controller for Webots: same logic as sim/climb.py (MuJoCo).
-
-Phases: DRIVE -> TRANSITION (front wheels hit the wall) -> CLIMB -> HOLD at 1.75 m.
-Each prop gets a wanted force in the world frame (X = toward the wall, Z = up); the IMU turns it
-into a hoop angle + thrust. Args (controllerArgs in the .wbt):
-  --real          battery sag, IMU bias + noise, a 1.5 N pull off the wall at 6 s
-  --thrust-gf N   your measured thrust per motor (default 755)
-  --check S       run S seconds, print RESULT PASS/FAIL, quit Webots
-"""
+# webots controller for the climber, same logic as sim/climb.py
+# drive -> tip onto the wall -> climb -> hold at 1.75 m
+# args: --real, --thrust-gf N, --check S  (or env CLIMB_CHECK=S, CLIMB_REAL=0)
 import math
 import os
 import sys
@@ -67,7 +61,7 @@ def noise(sd):
 
 
 def body_matrix():
-    """chassis rotation matrix (columns = body X, Y, Z in world) from the IMU quaternion"""
+    # quaternion -> rotation matrix, columns are body x/y/z in world
     x, y, z, w = imu.getQuaternion()
     return [[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
             [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],

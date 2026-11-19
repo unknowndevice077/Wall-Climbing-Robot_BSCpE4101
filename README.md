@@ -13,9 +13,9 @@ Built by a 5-person team.
 **Read before your first commit:** [CONTRIBUTING.md](CONTRIBUTING.md)
 **Using an AI tool?** It must follow [AGENTS.md](AGENTS.md).
 
-**The robot design** (thrust-vectoring climber, 1,039 g):
-[specs, weights and parts](docs/SPECIFICATIONS.md) · [build guide](docs/BUILD.md) · [setup checklist](docs/SETUP.md) ·
-[3D model + printable parts](design/README.md) · [simulation (MuJoCo + Webots)](sim/README.md)
+Robot design docs:
+[specs, weights and parts](docs/SPECIFICATIONS.md) | [build guide](docs/BUILD.md) | [setup checklist](docs/SETUP.md) |
+[3D model + printable parts](design/README.md) | [simulation (MuJoCo + Webots)](sim/README.md)
 
 ---
 
