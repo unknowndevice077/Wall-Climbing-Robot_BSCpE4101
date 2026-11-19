@@ -37,18 +37,18 @@ they just roll. An ESP32 reads the tilt from an MPU6050 and sets each hoop's ang
 
 ## Weight of every part
 
-Printed parts (PLA+, grams at the infill in [BUILD.md §4](BUILD.md)):
+Printed parts (PLA+, 0.4 mm nozzle, 0.2 mm layers, 4 top / 4 bottom layers). Why each infill: [BUILD.md §4](BUILD.md).
 
-| Part | Qty | g each | g total |
-|---|---|---|---|
-| Wheel | 4 | 52.3 | 209.2 |
-| Corner bracket (2 + 2 mirrored) | 4 | 16.1 | 64.6 |
-| Gear 24T | 4 | 3.0 | 12.0 |
-| Motor mount | 2 | 6.6 | 13.1 |
-| Hoop clip | 4 | 3.6 | 14.3 |
-| Battery tray | 1 | 13.2 | 13.2 |
-| Bumper arm | 1 | 3.6 | 3.6 |
-| Printed total | | | 330 |
+| Part | Qty | Walls | Infill | g each | g total |
+|---|---|---|---|---|---|
+| Wheel | 4 | 2 | 20% gyroid | 52.3 | 209.2 |
+| Corner bracket (2 + 2 mirrored) | 4 | 3 | 40% gyroid | 16.1 | 64.6 |
+| Gear 24T | 4 | 4 | 100% | 3.0 | 12.0 |
+| Motor mount | 2 | 3 | 50% gyroid | 6.6 | 13.1 |
+| Hoop clip | 4 | 3 | 50% gyroid | 3.6 | 14.3 |
+| Battery tray | 1 | 2 | 15% gyroid | 13.2 | 13.2 |
+| Bumper arm | 1 | 2 | 20% gyroid | 3.6 | 3.6 |
+| Printed total | | | | | 330 |
 
 Bought parts (typical listing weights; weigh yours and update `HW_*` in `design/blender/build_robot.py`):
 

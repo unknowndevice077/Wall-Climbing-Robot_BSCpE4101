@@ -46,6 +46,9 @@ Webots headless: `CLIMB_CHECK=16 webots --batch --mode=fast --no-rendering --min
 
 - Change dimensions in the KEY DIMENSIONS block of `build_robot.py`, then the same numbers in `sim/wall_climber.xml`
   and `sim/webots/worlds/wall_climber.wbt`. Rebuild, then rerun the sim check and `--min-thrust`.
+- Walls/infill per printed part are in `PRINTED` (build_robot.py). Change them there, not just in the slicer,
+  so the weight numbers stay right. Current: wheel 2 walls 20%, bracket 3/40%, gear solid, motor mount + clips 3/50%,
+  tray 2/15%, bumper 2/20%.
 - Bought-part weights are in `HW_CHASSIS` / `HW_HOOP` / `HW_WHEEL`. Use weighed numbers, not guesses.
 - If the clearance check fails, fix the geometry. Don't loosen the check.
 - Update the numbers in the docs if weight or min thrust changes (SPECIFICATIONS, BUILD, sim/README).
