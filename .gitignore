@@ -39,3 +39,4 @@ firmware/include/secrets.h
 
 # Webots per-user project files
 sim/webots/**/.*.wbproj
+*.blend1
