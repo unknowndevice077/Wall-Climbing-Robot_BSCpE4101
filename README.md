@@ -14,7 +14,7 @@ Built by a 5-person team.
 **Using an AI tool?** It must follow [AGENTS.md](AGENTS.md).
 
 Robot design docs:
-[specs, weights and parts](docs/SPECIFICATIONS.md) | [build guide](docs/BUILD.md) | [setup checklist](docs/SETUP.md) |
+[specs, weights and parts](docs/SPECIFICATIONS.md) | [plan + checklist](docs/PLAN.md) | [printing](docs/PRINTING.md) | [wiring](docs/WIRING.md) | [code](docs/CODE.md) |
 [3D model + printable parts](design/README.md) | [simulation (MuJoCo + Webots)](sim/README.md)
 
 ---

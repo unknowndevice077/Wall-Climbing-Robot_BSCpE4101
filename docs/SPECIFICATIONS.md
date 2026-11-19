@@ -1,6 +1,6 @@
 # Robot specs
 
-Build guide: [BUILD.md](BUILD.md). Step-by-step checklist: [SETUP.md](SETUP.md).
+Plan + checklist: [PLAN.md](PLAN.md). Printing: [PRINTING.md](PRINTING.md). Wiring: [WIRING.md](WIRING.md). Code: [CODE.md](CODE.md).
 Every printed part at each infill: [design/PARTS_REPORT.md](../design/PARTS_REPORT.md).
 
 ![render](../design/assets/robot_preview.png)
@@ -37,7 +37,7 @@ they just roll. An ESP32 reads the tilt from an MPU6050 and sets each hoop's ang
 
 ## Weight of every part
 
-Printed parts (PLA+, 0.4 mm nozzle, 0.2 mm layers, 4 top / 4 bottom layers). Why each infill: [BUILD.md §4](BUILD.md).
+Printed parts (PLA+, 0.4 mm nozzle, 0.2 mm layers, 4 top / 4 bottom layers). Why each infill: [PRINTING.md](PRINTING.md).
 
 | Part | Qty | Walls | Infill | g each | g total |
 |---|---|---|---|---|---|
@@ -110,7 +110,7 @@ isn't enough any more: rerun `python sim/climb.py --min-thrust`.
 | 21 | Consumables | Zip ties, foam tape, velcro strap, CA glue | 1 | 150 |
 | | Total | | | 5,155 |
 
-Prices are typical Shopee/Lazada prices; check them before ordering. Budget notes are in [BUILD.md §2](BUILD.md).
+Prices are typical Shopee/Lazada prices; check them before ordering. Budget notes are in [PLAN.md](PLAN.md#budget).
 
 ## Walls it can climb
 
@@ -140,7 +140,7 @@ Run `python sim/climb.py --walls` to check again after a design change.
 | Battery voltage (100k / 27k divider) | 34 |
 | Status LED | 2 |
 
-Wiring diagram and placement: [BUILD.md §6-7](BUILD.md).
+Wiring diagram and placement: [WIRING.md](WIRING.md).
 
 ## Tested so far (sim only)
 

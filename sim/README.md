@@ -1,6 +1,6 @@
 # Simulation
 
-Physics sim of the thrust-vectoring climber (design: [docs/BUILD.md](../docs/BUILD.md)) in [MuJoCo](https://mujoco.readthedocs.io).
+Physics sim of the thrust-vectoring climber (specs: [docs/SPECIFICATIONS.md](../docs/SPECIFICATIONS.md)) in [MuJoCo](https://mujoco.readthedocs.io).
 The wheels roll freely. Two props in tilting hoops press the robot to the wall and push it up.
 Meshes and masses come from the CAD (`design/mass_properties.json`), so the sim always weighs what the design weighs.
 
@@ -79,4 +79,4 @@ A single-file Arduino sketch with the same control logic, serial-controlled for 
 4. Click the MPU6050 to tilt it.
 
 It compiles for the ESP32 (Arduino core 3.x + ESP32Servo), so it does not follow AGENTS.md (core 2.0.17, `ledcSetup`, no new libraries).
-Porting it into `firmware/` needs the lead's decision on the locomotion/adhesion interfaces first (docs/SETUP.md §7).
+Porting it into `firmware/` needs the lead's decision on the locomotion/adhesion interfaces first (docs/CODE.md).

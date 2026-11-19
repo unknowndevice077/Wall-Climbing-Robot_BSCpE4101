@@ -1,7 +1,7 @@
 # Design files
 
 Body of the climber: star-spoke wheels, propeller hoops, H-frame. Electronics aren't drawn, but they're in the
-weight numbers and in the clearance check. Build steps: [docs/BUILD.md](../docs/BUILD.md).
+weight numbers and in the clearance check. Printing: [docs/PRINTING.md](../docs/PRINTING.md). Build steps: [docs/PLAN.md](../docs/PLAN.md).
 
 ![render](assets/robot_preview.png)
 

@@ -132,8 +132,10 @@ passing for that range.
 | Path | What |
 |---|---|
 | `docs/SPECIFICATIONS.md` | specs, weight of every part, parts list + prices, pins |
-| `docs/BUILD.md` | build guide: dimensions, printing, wiring, build order, tests |
-| `docs/SETUP.md` | checklist from ordering parts to the first climb |
+| `docs/PLAN.md` | team, timeline, risks, checklist from ordering parts to the first climb |
+| `docs/PRINTING.md` | 3D printing: settings, walls/infill, test fit |
+| `docs/WIRING.md` | frame dimensions, where every part goes, power, pins, every connection |
+| `docs/CODE.md` | code map, how the controller works, porting plan, tests |
 | `design/blender/build_robot.py` | the 3D model. Everything in `design/` and `sim/meshes/` is generated from it |
 | `design/print/*.stl` | printable parts (mm) |
 | `design/mass_properties.json`, `design/PARTS_REPORT.md` | generated weights, don't edit by hand |
@@ -162,7 +164,7 @@ Webots headless: `CLIMB_CHECK=16 webots --batch --mode=fast --no-rendering --min
   tray 2/15%, bumper 2/20%.
 - Bought-part weights are in `HW_CHASSIS` / `HW_HOOP` / `HW_WHEEL`. Use weighed numbers, not guesses.
 - If the clearance check fails, fix the geometry. Don't loosen the check.
-- Update the numbers in the docs if weight or min thrust changes (SPECIFICATIONS, BUILD, sim/README).
+- Update the numbers in the docs if weight or min thrust changes (SPECIFICATIONS, PLAN, sim/README).
 
 ### Things that will bite you
 
@@ -172,7 +174,7 @@ Webots headless: `CLIMB_CHECK=16 webots --batch --mode=fast --no-rendering --min
 - Hoop flat = 40 deg on the servo (servo deg = hoop deg + 40), not 90.
 - Cutting thrust on the wall means the robot falls. Link loss should mean "hold position", not "stop props".
 - `locomotion.h` (left/right wheel speed) and `adhesion.h` (one power %) don't fit this robot.
-  Porting the Wokwi logic into `firmware/` needs the lead to decide new interfaces first (docs/SETUP.md step 7).
+  Porting the Wokwi logic into `firmware/` needs the lead to decide new interfaces first (docs/CODE.md).
   Don't change those headers on your own.
 - Webots: the built-in `Propeller` node gave almost no thrust here, so the controller applies the thrust as a force
   on each hoop. Giving the prop solid its own Physics made the hoop servo crawl, so it has none. Contact bounce must be 0.
@@ -187,4 +189,4 @@ Commit areas for this part: `design: ...`, `sim: ...`, `docs: ...`.
 [README.md](README.md) setup + ownership · [CONTRIBUTING.md](CONTRIBUTING.md) git workflow ·
 [SAFETY.md](SAFETY.md) safety + wall-test checklist · [docs/protocol.md](docs/protocol.md) WebSocket format ·
 [docs/decisions.md](docs/decisions.md) decisions log · [docs/tasks.md](docs/tasks.md) task backlog ·
-[docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) robot specs · [docs/BUILD.md](docs/BUILD.md) build guide · [docs/SETUP.md](docs/SETUP.md) setup checklist
+[docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) robot specs · [docs/PLAN.md](docs/PLAN.md) plan + checklist · [docs/PRINTING.md](docs/PRINTING.md) printing · [docs/WIRING.md](docs/WIRING.md) wiring · [docs/CODE.md](docs/CODE.md) code

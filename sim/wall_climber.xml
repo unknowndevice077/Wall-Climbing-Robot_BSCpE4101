@@ -84,7 +84,7 @@
     <!-- MG90S servo through 1:1 gears: ~0.2 N·m -->
     <position name="pitch_F" joint="pitch_F" kp="1.5" kv="0.03" forcerange="-0.22 0.22" ctrlrange="-3.14 3.14"/>
     <position name="pitch_R" joint="pitch_R" kp="1.5" kv="0.03" forcerange="-0.22 0.22" ctrlrange="-3.14 3.14"/>
-    <!-- A2212 1400KV + 9045 prop on 3S. 7.4 N = 755 gf is a cautious number: MEASURE yours (docs/BUILD.md) and put it here -->
+    <!-- A2212 1400KV + 9045 prop on 3S. 7.4 N = 755 gf is a cautious number: MEASURE yours (docs/PLAN.md thrust test) and put it here -->
     <general name="thrust_F" site="thrust_F" gear="0 0 1 0 0 0" ctrlrange="0 7.4"/>
     <general name="thrust_R" site="thrust_R" gear="0 0 1 0 0 0" ctrlrange="0 7.4"/>
     <velocity name="spin_F" joint="spin_F" kv="0.0005" ctrlrange="-300 300"/>

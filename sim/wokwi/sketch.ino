@@ -26,7 +26,7 @@ const int PIN_LED = 2;
 // ---------- robot numbers (tune after weighing + thrust test) ----------
 const float MASS = 0.95;        // kg, weigh the real robot
 const float G = 9.81;
-const float TMAX = 6.6;         // N per prop at 11.1 V (measure it, see docs/BUILD.md)
+const float TMAX = 6.6;         // N per prop at 11.1 V (measure it, see docs/PLAN.md)
 const float PHI_MIN = -40, PHI_MAX = 140;   // hoop angle range, deg. 90 = prop pushes forward
 const float PHI_MIN_FRONT = -4;             // front hoop hits the battery below this (design/blender clearance check)
 // per-servo trim: servo degrees where the hoop is at PHI_MIN. flip if the servo is mounted mirrored
