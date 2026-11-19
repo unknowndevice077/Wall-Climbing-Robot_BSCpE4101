@@ -1,0 +1,172 @@
+#VRML_SIM R2025a utf8
+# Thrust-vectoring wall climber. Same meshes, masses and dimensions as sim/wall_climber.xml (MuJoCo).
+# Masses: design/mass_properties.json. Thrust: the controller pushes each hoop at the prop centre along its axis
+# (like the MuJoCo site force); the prop joints only spin the blades for the look.
+
+WorldInfo {
+  info [ "Wall climbing robot: drive -> tip onto the wall -> climb -> hold at 1.75 m" ]
+  title "Wall Climber"
+  basicTimeStep 2
+  contactProperties [
+    ContactProperties {
+      coulombFriction [ 0.9 ]
+      bounce 0
+      softCFM 1e-05
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.1 0.1 0.99 1.6
+  position 0.45 -2.6 1.0
+  follow "wall_climber"
+  followType "Pan and Tilt Shot"
+}
+Background {
+  skyColor [ 0.78 0.83 0.9 ]
+}
+DirectionalLight {
+  direction 0.3 0.6 -1
+  intensity 2.5
+  castShadows TRUE
+}
+DirectionalLight {
+  direction -0.5 -0.4 -0.6
+  intensity 0.8
+}
+Solid {
+  name "floor"
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.82 0.83 0.84 roughness 1 metalness 0 }
+      geometry Plane { size 8 8 }
+    }
+  ]
+  boundingObject Plane { size 8 8 }
+}
+Solid {
+  translation 1.1 0 1.25
+  name "wall"
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.72 0.74 0.78 roughness 1 metalness 0 }
+      geometry Box { size 0.2 3 2.5 }
+    }
+  ]
+  boundingObject Box { size 0.2 3 2.5 }
+}
+DEF CLIMBER Robot {
+  translation 0 0 0.109
+  name "wall_climber"
+  controller "climber"
+  controllerArgs [ "--real" ]
+  supervisor TRUE
+  children [
+    Shape {
+      appearance DEF FRAME PBRAppearance { baseColor 0.25 0.26 0.28 roughness 0.7 metalness 0 }
+      geometry Mesh { url "../../meshes/chassis.stl" }
+    }
+    InertialUnit { name "imu" }
+    GPS { name "gps" }
+    DEF WHEEL_FL HingeJoint {
+      jointParameters HingeJointParameters { axis 0 1 0 anchor 0.165 0.175 0 dampingConstant 0.0004 }
+      endPoint Solid {
+        translation 0.165 0.175 0
+        name "wheel_FL"
+        children [ DEF WL Shape { appearance DEF GREEN PBRAppearance { baseColor 0.45 0.75 0.52 roughness 0.6 metalness 0 } geometry Mesh { url "../../meshes/wheel_l.stl" } } ]
+        boundingObject DEF WHEEL_BO Pose { rotation 1 0 0 1.5708 children [ Cylinder { height 0.01 radius 0.108 } ] }
+        physics DEF WHEEL_PH Physics { density -1 mass 0.0671 }
+      }
+    }
+    DEF WHEEL_FR HingeJoint {
+      jointParameters HingeJointParameters { axis 0 1 0 anchor 0.165 -0.175 0 dampingConstant 0.0004 }
+      endPoint Solid {
+        translation 0.165 -0.175 0
+        name "wheel_FR"
+        children [ DEF WR Shape { appearance USE GREEN geometry Mesh { url "../../meshes/wheel_r.stl" } } ]
+        boundingObject USE WHEEL_BO
+        physics USE WHEEL_PH
+      }
+    }
+    DEF WHEEL_RL HingeJoint {
+      jointParameters HingeJointParameters { axis 0 1 0 anchor -0.165 0.175 0 dampingConstant 0.0004 }
+      endPoint Solid {
+        translation -0.165 0.175 0
+        name "wheel_RL"
+        children [ USE WL ]
+        boundingObject USE WHEEL_BO
+        physics USE WHEEL_PH
+      }
+    }
+    DEF WHEEL_RR HingeJoint {
+      jointParameters HingeJointParameters { axis 0 1 0 anchor -0.165 -0.175 0 dampingConstant 0.0004 }
+      endPoint Solid {
+        translation -0.165 -0.175 0
+        name "wheel_RR"
+        children [ USE WR ]
+        boundingObject USE WHEEL_BO
+        physics USE WHEEL_PH
+      }
+    }
+    # front hoop: MG90S through 1:1 gears, about 0.2 N.m. Range -4..140 deg (below -4 it hits the battery)
+    HingeJoint {
+      jointParameters HingeJointParameters { axis 0 1 0 anchor 0.14 0 0.032 dampingConstant 0.01 }
+      device [
+        RotationalMotor { name "pitch_F" maxVelocity 5 maxTorque 0.22 minPosition -0.0698 maxPosition 2.443 }
+        PositionSensor { name "pitch_F_sensor" }
+      ]
+      endPoint DEF HOOP_F Solid {
+        translation 0.14 0 0.032
+        name "hoop_F"
+        children [
+          DEF HOOP Shape {
+            appearance PBRAppearance { baseColor 0.74 0.55 0.33 roughness 0.6 metalness 0 }
+            geometry Mesh { url "../../meshes/ring.stl" }
+          }
+          HingeJoint {
+            jointParameters HingeJointParameters { axis 0 0 1 anchor 0 0 0.01 }
+            device [ RotationalMotor { name "prop_F" maxVelocity 300 maxTorque 0.05 } ]
+            endPoint Solid {
+              translation 0 0 0.01
+              name "prop_F"
+              children [ DEF PROP Shape { appearance PBRAppearance { baseColor 0.3 0.3 0.33 roughness 0.5 metalness 0 } geometry Mesh { url "../../meshes/prop.stl" } } ]
+            }
+          }
+        ]
+        physics Physics { density -1 mass 0.1417 centerOfMass [ 0.0098 0.0033 -0.0073 ] inertiaMatrix [ 0.0006 0.0006 0.0011 0 0 0 ] }
+      }
+    }
+    # rear hoop: range -40..140 deg. Prop spins the other way
+    HingeJoint {
+      jointParameters HingeJointParameters { axis 0 1 0 anchor -0.14 0 0.032 dampingConstant 0.01 }
+      device [
+        RotationalMotor { name "pitch_R" maxVelocity 5 maxTorque 0.22 minPosition -0.698 maxPosition 2.443 }
+        PositionSensor { name "pitch_R_sensor" }
+      ]
+      endPoint DEF HOOP_R Solid {
+        translation -0.14 0 0.032
+        name "hoop_R"
+        children [
+          USE HOOP
+          HingeJoint {
+            jointParameters HingeJointParameters { axis 0 0 1 anchor 0 0 0.01 }
+            device [ RotationalMotor { name "prop_R" maxVelocity 300 maxTorque 0.05 } ]
+            endPoint Solid {
+              translation 0 0 0.01
+              name "prop_R"
+              children [ USE PROP ]
+            }
+          }
+        ]
+        physics Physics { density -1 mass 0.1417 centerOfMass [ -0.0098 0.0033 -0.0073 ] inertiaMatrix [ 0.0006 0.0006 0.0011 0 0 0 ] }
+      }
+    }
+  ]
+  # rails + brackets, and the battery tray under the cross beam
+  boundingObject Group {
+    children [
+      Pose { translation 0 0 -0.012 children [ Box { size 0.38 0.3 0.016 } ] }
+      Pose { translation 0 0 -0.0375 children [ Box { size 0.042 0.082 0.042 } ] }
+    ]
+  }
+  physics Physics { density -1 mass 0.487 centerOfMass [ -0.0015 -0.0047 -0.0121 ] }
+}

@@ -20,6 +20,7 @@ python sim/climb.py --min-thrust             # smallest thrust per motor that st
 | `climb.py` | Loads the CAD masses, runs the controller: drive → tip onto the wall → climb → hold at 1.75 m |
 | `meshes/*.stl` | Made by `design/blender/build_robot.py` (don't edit by hand) |
 | `climb.mp4`, `climb_real.mp4` | Recorded runs |
+| `webots/` | Same robot and controller in [Webots](https://cyberbotics.com): open `webots/worlds/wall_climber.wbt` ([README](webots/README.md)) |
 | `wokwi/` | ESP32 prototype sketch + [Wokwi](https://wokwi.com) circuit. **Reference only**, not the team firmware |
 
 ## How the controller works

@@ -36,3 +36,6 @@ desktop.ini
 # Secrets: never commit WiFi passwords or keys
 firmware/include/secrets.h
 .env
+
+# Webots per-user project files
+sim/webots/**/.*.wbproj
