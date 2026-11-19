@@ -12,7 +12,7 @@ weight numbers and in the clearance check. Build steps: [docs/BUILD.md](../docs/
 | `PARTS_REPORT.md` | Grams per part at each infill, print settings and time, weight by group (generated) |
 | `mass_properties.json` | Weights + centres of mass; `sim/climb.py` reads it (generated) |
 | `assets/wall_climber_body.blend` / `.glb` | Assembled model |
-| `assets/robot_preview.png`, `robot_side.png`, `robot_corner.png` | Renders |
+| `assets/robot_preview.png` | Render |
 
 Rebuild from the repo root (Blender 4.2+, takes ~2 min):
 

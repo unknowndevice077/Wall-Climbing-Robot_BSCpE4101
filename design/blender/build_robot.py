@@ -604,9 +604,7 @@ scn.render.engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in engines else
 scn.view_settings.exposure = -0.6
 scn.render.resolution_x, scn.render.resolution_y = 1400, 1000
 cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam")); scn.collection.objects.link(cam); scn.camera = cam
-for fname, loc, target, lens in (("robot_preview.png", (0.6, -0.62, 0.42), (0, 0, 0.1), 38),
-                                  ("robot_side.png", (0.02, -1.1, 0.12), (0, 0, 0.11), 45),
-                                  ("robot_corner.png", (0.30, -0.30, 0.16), (0.145, -0.15, 0.13), 50)):
+for fname, loc, target, lens in (("robot_preview.png", (0.6, -0.62, 0.42), (0, 0, 0.1), 38),):
     cam.location = loc; cam.data.lens = lens
     cam.rotation_euler = (Vector(target) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
     scn.render.filepath = os.path.join(ASSETS, fname)

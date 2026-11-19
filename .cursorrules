@@ -1,4 +1,0 @@
-Read and follow AGENTS.md in the repository root before doing anything.
-It is the single source of truth for this project: hardware, folder ownership, interfaces,
-build commands, coding style, safety rules, and git rules. If anything here conflicts with
-AGENTS.md, AGENTS.md wins.
