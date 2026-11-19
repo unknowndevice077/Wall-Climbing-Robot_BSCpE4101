@@ -24,6 +24,7 @@ ap.add_argument("--thrust-gf", type=float, default=755, help="max thrust per mot
 ap.add_argument("--check", action="store_true", help="headless pass/fail, no video")
 ap.add_argument("--min-thrust", action="store_true")
 ap.add_argument("--walls", action="store_true", help="run the wall sweep")
+ap.add_argument("--record", action="store_true", help="save the run as sim/climb_anim.json for design/blender/animate_robot.py")
 ap.add_argument("--wall-angle", type=float, default=90, help="deg from the floor: 60 = ramp, 90 = vertical, 110 = overhang")
 ap.add_argument("--mu", type=float, default=None, help="wheel-on-wall grip (default 0.9, 0.6 with --real)")
 ap.add_argument("--bumps", type=float, default=0, help="height of ridges across the wall in mm (tiles, trim, cables)")
@@ -297,6 +298,25 @@ def walls_sweep():
             print(f"  {kind:<6} {label:<8} {res}", flush=True)
 
 
+def record(seconds=16.0, fps=30):
+    # pose + joint angles per frame, the Blender animation plays these back
+    q = lambda j: d.qpos[m.jnt_qposadr[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, j)]]
+    steps_per_frame = int(round(1 / fps / m.opt.timestep))
+    frames = []
+    for _ in range(int(seconds * fps)):
+        for _ in range(steps_per_frame):
+            controller()
+            mujoco.mj_step(m, d)
+        frames.append({"pos": [round(float(v), 5) for v in d.xpos[chassis]],
+                       "quat": [round(float(v), 5) for v in d.xquat[chassis]],
+                       **{j: round(float(q(j)), 4) for j in ("pitch_F", "pitch_R", "w_FL", "w_FR", "w_RL", "w_RR")},
+                       "thrust_F": round(float(d.ctrl[act["thrust_F"]]), 2), "thrust_R": round(float(d.ctrl[act["thrust_R"]]), 2),
+                       "phase": state["phase"]})
+    out = os.path.join(HERE, "climb_anim.json")
+    json.dump({"fps": fps, "real": REAL, "frames": frames}, open(out, "w"))
+    print(f"recorded {len(frames)} frames, last phase {state['phase']} -> {out}")
+
+
 if __name__ == "__main__":
     if ARGS.walls:
         walls_sweep()
@@ -305,6 +325,8 @@ if __name__ == "__main__":
         min_thrust()
     elif ARGS.check:
         sys.exit(0 if run_check(ARGS.seconds or 18) else 1)
+    elif ARGS.record:
+        record(ARGS.seconds or 16)
     elif ARGS.video:
         run_video(ARGS.seconds or 16)
     else:
